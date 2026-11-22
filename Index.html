@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dueply: the daily maths duel</title>
+<meta name="description" content="Dueply is a daily applied-maths challenge with a timer, plus the endless IQ Trainer. Compare your score with the average player." />
+<meta property="og:title" content="Dueply: the daily maths duel" />
+<meta property="og:description" content="Five applied-maths problems a day, against the clock. Plus the endless IQ Trainer." />
+<meta name="theme-color" content="#0E1116" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1116'/%3E%3Ctext x='32' y='47' text-anchor='middle' font-size='42' font-family='serif' fill='%23D9A949'%3E%CF%80%3C/text%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--ink:#0E1116;--ink2:#131821;--ink3:#19202B;--ink4:#232B38;--line:rgba(226,190,120,.13);--line2:rgba(226,190,120,.32);--brass:#D9A949;--hi:#F4D58A;--deep:#8C6A26;--text:#EDE8DD;--muted:#8E96A3;--faint:#5B6371;--ok:#2FD38A;--bad:#FF4D5E;--mid:#E9C84E;--display:"Space Grotesk",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--body);color:var(--text);background:var(--ink) radial-gradient(1000px 600px at 50% -12%,rgba(217,169,73,.10),transparent 60%) fixed;min-height:100dvh;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--hi);outline-offset:3px}
+.app{max-width:820px;margin:0 auto;padding:14px 16px 24px;min-height:100dvh;display:flex;flex-direction:column;gap:16px}
+.nav{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+.brand svg{width:38px;height:38px}
+.brand h1{margin:0;font:700 1.5rem/1 var(--display);letter-spacing:-.02em}
+.brand h1 span{background:linear-gradient(180deg,var(--hi),var(--brass) 60%,var(--deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p{margin:4px 0 0;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.modes{display:flex;padding:4px;border:1px solid var(--line);border-radius:14px;background:rgba(19,24,33,.75)}
+.modes button{border:0;background:none;padding:9px 16px;border-radius:10px;font:600 .8rem var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.modes button[aria-selected=true]{background:linear-gradient(180deg,var(--hi),var(--brass));color:var(--ink)}
+.tracker{display:flex;gap:8px}
+.stat{display:flex;flex-direction:column;align-items:flex-end;padding:6px 13px;border:1px solid var(--line);border-radius:12px;background:rgba(19,24,33,.7);min-width:76px}
+.stat span{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.stat b{font:700 1.3rem/1.05 var(--display);font-variant-numeric:tabular-nums}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;font:600 .8rem var(--display);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.bar b{color:var(--text)}
+.timer{font-variant-numeric:tabular-nums;padding:5px 12px;border:1px solid var(--line2);border-radius:999px;letter-spacing:.08em;color:var(--hi)}
+.timer.low{color:var(--bad);border-color:var(--bad)}
+.card{position:relative;padding:26px 26px 22px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 30%),linear-gradient(160deg,var(--ink3),var(--ink2) 70%);box-shadow:0 30px 60px -30px rgba(0,0,0,.85)}
+.card::before{content:"";position:absolute;left:24px;right:24px;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--brass),transparent)}
+.pill{display:inline-block;padding:6px 12px;border-radius:999px;font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);background:rgba(217,169,73,.12);border:1px solid rgba(217,169,73,.38)}
+.q{margin:20px 0 10px;font:500 clamp(1.3rem,3.4vw,1.8rem)/1.45 var(--display);text-wrap:pretty}
+.note{font-size:.74rem;color:var(--faint)}
+.answer{display:flex;gap:10px;margin-top:20px}
+.answer input{flex:1;min-width:0;height:56px;padding:0 16px;border-radius:14px;border:1px solid var(--line2);background:rgba(0,0,0,.3);color:var(--text);font:700 1.4rem var(--display)}
+.answer input:focus{outline:none;border-color:var(--hi);box-shadow:0 0 0 3px rgba(217,169,73,.18)}
+.cta,.ghost{height:56px;padding:0 22px;border-radius:14px;font:700 .95rem var(--display);letter-spacing:.14em}
+.cta{border:1px solid var(--hi);background:linear-gradient(180deg,var(--hi),var(--brass));color:var(--ink);box-shadow:0 14px 34px -14px rgba(217,169,73,.8)}
+.ghost{border:1px solid var(--line2);background:rgba(217,169,73,.06);color:var(--hi)}
+.fb{margin:16px 0 0;min-height:3.2em;font-size:.95rem;line-height:1.5;color:var(--muted)}
+.fb b{font-family:var(--display);font-size:1.05rem}
+.good{color:var(--ok)}.half{color:var(--mid)}.miss{color:var(--bad)}
+.card.c-ok{border-color:var(--ok)}.card.c-half{border-color:var(--mid)}.card.c-miss{border-color:var(--bad)}
+.eyebrow{font-size:.66rem;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+.score{font:700 clamp(3.4rem,12vw,5rem)/1 var(--display);color:var(--hi);margin:8px 0 2px}
+.score span{font-size:1.1rem;color:var(--faint);margin-left:8px}
+.verdict{font:600 clamp(1.4rem,4.2vw,2rem)/1.25 var(--display);margin:10px 0 4px}
+.verdict em{font-style:normal;color:var(--ok)}
+.cmp{margin:18px 0 6px;display:grid;gap:8px}
+.cmp div{display:grid;grid-template-columns:70px 1fr 44px;align-items:center;gap:10px;font-size:.78rem;color:var(--muted)}
+.cmp i{display:block;height:10px;border-radius:5px;background:var(--brass)}
+.cmp div+div i{background:var(--faint)}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0}
+.tile{aspect-ratio:1.3;border-radius:10px;display:grid;place-items:center;font:700 1rem var(--display);color:rgba(14,17,22,.85)}
+.t-ok{background:var(--ok)}.t-half{background:var(--mid)}.t-miss{background:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats div{padding:10px 6px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.2);text-align:center}
+.stats b{display:block;font:700 1.25rem var(--display)}.stats span{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.row{display:grid;gap:10px;margin-top:14px}
+.cd{margin-top:14px;padding:12px 16px;border:1px dashed var(--line2);border-radius:14px;font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between}
+.cd b{font-family:var(--display);color:var(--text)}
+.icon{width:42px;height:42px;align-self:center;border-radius:12px;border:1px solid var(--line);background:rgba(19,24,33,.7);font-size:1.1rem}
+.dist{margin:18px 0 6px}.dist svg{display:block;width:100%;height:auto;overflow:visible}
+#res{animation:rise .6s cubic-bezier(.2,.9,.25,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.tile{animation:pop .5s cubic-bezier(.2,1.5,.4,1) both}
+.tile:nth-child(2){animation-delay:.08s}.tile:nth-child(3){animation-delay:.16s}.tile:nth-child(4){animation-delay:.24s}.tile:nth-child(5){animation-delay:.32s}
+@keyframes pop{from{transform:scale(.3) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+.stats div{transition:transform .2s}.stats div:hover{transform:translateY(-3px)}
+.card.c-ok{box-shadow:0 0 60px rgba(47,211,138,.25)}.card.c-miss{box-shadow:0 0 60px rgba(255,77,94,.22)}
+.card.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.conf{position:fixed;top:-20px;width:9px;height:15px;z-index:60;border-radius:2px;pointer-events:none;animation:fall 2.4s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media(prefers-reduced-motion:reduce){.card.shake,#res,.tile,.conf{animation:none}}
+.chip{align-self:center;height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:rgba(217,169,73,.08);color:var(--hi);font:600 .8rem var(--display);letter-spacing:.06em;white-space:nowrap}
+.rankbox{margin-top:18px;padding:16px;border:1px dashed var(--line2);border-radius:16px;background:rgba(217,169,73,.05)}
+.rankbox .verdict{margin:6px 0 2px;color:var(--hi)}
+.new{font:700 .62rem var(--body);letter-spacing:.2em;padding:3px 9px;border-radius:999px;color:var(--ink);background:linear-gradient(90deg,var(--hi),var(--ok));vertical-align:middle}
+.pb{height:8px;margin:12px 0 8px;border-radius:4px;background:var(--ink4);overflow:hidden}.pb i{display:block;height:100%;background:linear-gradient(90deg,var(--brass),var(--hi))}
+.ov{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:16px;background:rgba(8,10,14,.78);backdrop-filter:blur(8px)}
+.panel{position:relative;width:min(520px,100%);max-height:88dvh;overflow:auto;padding:24px 20px 18px;border-radius:22px;border:1px solid var(--line2);background:linear-gradient(180deg,var(--ink3),var(--ink2))}
+.panel .icon{position:absolute;top:12px;right:12px;width:36px;height:36px}
+.tr{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:.82rem}
+.tr b{font-family:var(--display);font-size:.95rem}.tr small{display:block;color:var(--muted)}.tr.lock{opacity:.45}.tr.cur{border-color:var(--hi);background:rgba(217,169,73,.1)}
+.panel.wide{width:min(740px,100%)}
+.guide h2{margin:6px 0 4px;font:700 1.6rem var(--display)}
+.guide details{margin-top:10px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.18)}
+.guide summary{cursor:pointer;padding:13px 16px;font:600 1rem var(--display);list-style:none}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::after{content:"＋";float:right;color:var(--brass)}
+.guide details[open] summary::after{content:"－"}
+.guide details[open]{border-color:var(--line2)}
+.guide .in{padding:0 16px 14px;font-size:.9rem;line-height:1.6;color:var(--muted)}
+.guide .in p{margin:8px 0}.guide .in b{color:var(--text)}
+.lt{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:8px;border-radius:9px;background:rgba(217,169,73,.16);color:var(--hi);font:700 1rem var(--display)}
+.eq{margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.eq b{font:700 1.1rem var(--display);color:var(--hi)}.eq span{font-size:.78rem}
+.kw{display:grid;grid-template-columns:minmax(120px,.8fr) 1.6fr;gap:6px 12px;margin:6px 0;padding:9px 12px;border-radius:12px;background:rgba(0,0,0,.22)}
+.kw q{quotes:none;font:600 .86rem var(--display);color:var(--hi)}
+.tip{margin:10px 0;padding:10px 12px;border-left:3px solid var(--ok);border-radius:8px;background:rgba(47,211,138,.07);color:var(--text)}
+.warn{border-left-color:var(--bad);background:rgba(255,77,94,.07)}
+@media(max-width:560px){.kw{grid-template-columns:1fr}}
+.av{width:44px;height:44px;border-radius:12px;object-fit:cover;border:1px solid var(--line2);flex:none;background:var(--ink4)}
+.av.sm{width:26px;height:26px;border-radius:8px;vertical-align:middle;margin-right:8px}
+.av.lg{width:56px;height:56px}
+.rb-top{display:flex;align-items:center;gap:12px;margin:6px 0 2px}.rb-top .verdict{margin:0}
+.tr-l{display:flex;align-items:center;gap:12px;min-width:0}.tr-l .av{width:38px;height:38px}
+.tr.lock .av{filter:grayscale(1) brightness(.55)}.tr small{font-size:.74rem}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);opacity:0;padding:11px 18px;border-radius:999px;background:var(--ink4);border:1px solid var(--line2);font-size:.86rem;transition:.3s;pointer-events:none}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.foot{margin-top:auto;font-size:.66rem;color:var(--faint)}
+@media(max-width:560px){.answer{flex-direction:column}.card{padding:20px 16px}.stats{grid-template-columns:1fr 1fr}.brand p{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="nav">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4D58A"/><stop offset="1" stop-color="#8C6A26"/></linearGradient></defs><rect x="1" y="1" width="62" height="62" rx="15" fill="#131821" stroke="rgba(226,190,120,.3)"/><text x="32" y="47" text-anchor="middle" font-size="42" font-family="Space Grotesk,serif" font-weight="700" fill="url(#g)">π</text></svg>
+    <div><h1>Due<span>ply</span></h1><p>The daily maths duel</p></div>
+  </div>
+  <div class="modes" role="tablist"><button role="tab" id="tD" aria-selected="true">Daily <small id="dn"></small></button><button role="tab" id="tA" aria-selected="false">IQ Trainer</button></div>
+  <div class="tracker"><button class="chip" id="how">📘 How to</button><button class="chip" id="rank" title="See all ranks"></button><button class="icon" id="mute" aria-label="Mute sound" title="Mute / unmute">🔊</button><div class="stat"><span id="l1">Score</span><b id="v1">0</b></div><div class="stat"><span id="l2">Round</span><b id="v2">1/5</b></div></div>
+</header>
+
+<div class="bar" id="bar"><span id="rn"></span><span class="timer" id="tm">2:00</span></div>
+
+<main class="card" id="game">
+  <span class="pill" id="yr"></span>
+  <p class="q" id="q"></p>
+  <p class="note">Take g = 9.8 m/s². Units are optional, and ms⁻¹, m/s or just ms are all fine. Give 3 significant figures or exact fractions.</p>
+  <div class="answer"><input id="in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Your answer, e.g. 23 m/s" aria-label="Answer" /><button class="cta" id="go">SUBMIT</button></div>
+  <p class="fb" id="fb" aria-live="polite"></p>
+</main>
+
+<section class="card" id="res" hidden>
+  <div class="eyebrow" id="re"></div>
+  <div class="score"><b id="rs">0</b><span id="rmax"></span></div>
+  <p class="verdict" id="rv"></p>
+  <p class="note" id="rsub"></p>
+  <div class="dist"><svg id="distSvg" viewBox="0 0 560 150" role="img" aria-label="Your score compared with the estimated spread of player scores"></svg><p class="note">Estimated spread of today’s scores, based on how hard each question is. Higher is further right.</p></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="stats"><div><b id="s1"></b><span>Correct</span></div><div><b id="s2"></b><span>Total time</span></div><div><b id="s3"></b><span>Day streak</span></div><div><b id="s4"></b><span>Days played</span></div></div>
+  <div id="rbR"></div>
+  <div class="row"><button class="cta" id="share">COPY SHARE GRID</button><button class="ghost" id="toArc">PLAY IQ TRAINER</button></div>
+  <div class="cd"><span>Next Dueply in</span><b id="cd">--:--:--</b></div>
+</section>
+
+<section class="card" id="over" hidden>
+  <div class="eyebrow">IQ Trainer</div>
+  <p class="verdict" id="ot">RUN OVER</p>
+  <div class="stats" style="grid-template-columns:1fr 1fr"><div><b id="os"></b><span>Final streak</span></div><div><b id="ob"></b><span>Personal best</span></div></div>
+  <p class="verdict" id="orank" style="margin-top:16px"></p>
+  <p class="note" id="oreveal"></p>
+  <div id="rbO"></div>
+  <div class="row"><button class="cta" id="again">PLAY AGAIN</button><button class="ghost" id="shareA">SHARE STREAK</button><button class="ghost" id="toDaily">TODAY’S DAILY</button></div>
+</section>
+
+<footer class="foot">“Average player” is a modelled estimate based on question difficulty, not live data. Keys: Enter to submit and continue.</footer>
+</div>
+<div class="ov" id="ov" hidden><div class="panel"><button class="icon" id="ovx" aria-label="Close">✕</button><div class="eyebrow">Ranks</div><p class="note">Ranks need XP, daily days played and an IQ Trainer streak, so they can’t be rushed. Correct answers earn 10–15 XP, near misses 3, and finishing a daily adds a bonus.</p><div id="ovl"></div></div></div>
+<div class="ov" id="gd" hidden><div class="panel wide guide"><button class="icon" id="gdx" aria-label="Close">✕</button>
+<div class="eyebrow">How to</div><h2>Linear motion, made easy 🚀</h2>
+<p class="note">Everything in Dueply uses one toolkit: <b>motion in a straight line with constant acceleration</b>. Learn these 4 equations and a few word clues and you can solve almost every question.</p>
+
+<details open><summary>🎯 What is this topic, and why does it matter?</summary><div class="in">
+<p><b>Constant acceleration</b> means the speed changes by the <i>same amount every second</i> (a car gaining 2 m/s every second, or gravity pulling things down). That is why one set of equations works.</p>
+<p><b>Projectiles?</b> Anything dropped or thrown straight up or down is this topic, with gravity as the acceleration. Angled projectiles (like a football kicked at an angle) come later, but they reuse the same equations: sideways has no acceleration, up and down has gravity.</p>
+<p><b>Why it’s the base:</b> it is the foundation of Leaving Cert <b>Applied Maths</b> (and physics). It also links to calculus in Higher Level Maths: speed is the <i>rate of change</i> of distance, and acceleration is the rate of change of speed.</p></div></details>
+
+<details open><summary>🔤 What each letter means</summary><div class="in">
+<p><span class="lt">s</span><b>Displacement</b>: how far you are from where you started, in a direction (metres, m). Not always the same as distance travelled!</p>
+<p><span class="lt">u</span><b>Initial speed</b>: how fast it’s going at the <i>start</i> of the bit you’re looking at (m/s). “u” comes before “v”.</p>
+<p><span class="lt">v</span><b>Final speed</b>: how fast it’s going at the <i>end</i> of that bit (m/s).</p>
+<p><span class="lt">a</span><b>Acceleration</b>: how much the speed changes <i>every second</i> (m/s²). Slowing down is a <b>negative</b> a, also called <b>retardation</b> or <b>deceleration</b>.</p>
+<p><span class="lt">t</span><b>Time</b> taken (seconds, s).</p>
+<div class="tip">💡 Each equation has <b>four</b> of these five letters. Every question gives you <b>three</b>, and you hunt for the one you’re missing.</div></div></details>
+
+<details open><summary>🧰 The 4 equations (and the missing-letter trick)</summary><div class="in">
+<p>Pick the equation by the letter you <b>don’t</b> have and <b>don’t</b> need:</p>
+<div class="eq"><b>v = u + at</b><span>no s needed</span></div>
+<div class="eq"><b>s = ut + ½at²</b><span>no v needed</span></div>
+<div class="eq"><b>v² = u² + 2as</b><span>no t needed</span></div>
+<div class="eq"><b>s = ½(u + v)t</b><span>no a needed</span></div>
+<p><b>Why they work:</b> v = u + at says “new speed = old speed + the speed gained”. The distance one uses the <i>average</i> speed, (u+v)/2, times the time. The others come from swapping one into the other.</p></div></details>
+
+<details><summary>🗺️ A 4-step method that always works</summary><div class="in">
+<p><b>1.</b> Draw a quick sketch and <b>pick a positive direction</b> (stick with it!).</p>
+<p><b>2.</b> Write the list <b>s, u, v, a, t</b> and fill in what the question tells you (use the word clues below).</p>
+<p><b>3.</b> Find the equation with the letters you have, plus the one you want.</p>
+<p><b>4.</b> Solve, then ask: does the answer make sense? Include the unit.</p></div></details>
+
+<details open><summary>🕵️ Word decoder: what the wording secretly tells you</summary><div class="in">
+<div class="kw"><q>“dropped”, “released”, “starts from rest”, “falls from rest”</q><div><b>u = 0</b> (it starts still). But <b>v is NOT 0</b>: it speeds up as it falls, so it’s going fast when it lands. <i>Why? You let go, you didn’t throw it.</i></div></div>
+<div class="kw"><q>“comes to rest”, “stops”, “brought to rest”</q><div><b>v = 0</b> at the end. <i>Why? Rest means speed zero.</i></div></div>
+<div class="kw"><q>“thrown / projected upwards”</q><div><b>u</b> is the throw speed. At the very top the ball stops for an instant, so <b>v = 0 at the maximum height</b> (not at the start, and not at the end!). <i>Why? It has to stop before it can turn around.</i></div></div>
+<div class="kw"><q>“thrown downwards”</q><div><b>u</b> is the throw speed (not 0), and gravity speeds it up. <i>Why? You gave it a push, and gravity adds more.</i></div></div>
+<div class="kw"><q>“uniform / constant speed”</q><div><b>a = 0</b>. <i>Why? Speed isn’t changing.</i> Then simply distance = speed × time.</div></div>
+<div class="kw"><q>“retardation”, “decelerates”, “brakes”</q><div><b>a is negative</b> if forwards is positive. <i>Why? It’s slowing down.</i></div></div>
+<div class="kw"><q>“falls”, “under gravity”</q><div>Use <b>g = 9.8 m/s²</b>. Down is positive if it’s falling; for things thrown up, <b>a = −9.8</b>. <i>Why? Gravity always pulls down, even while the ball is going up (that’s why it slows).</i></div></div>
+<div class="kw"><q>“returns to the starting point”</q><div><b>s = 0</b> (back where it began).</div></div>
+<div class="kw"><q>“in the 7th second”</q><div>The distance during that one second only: <b>s₇ − s₆</b> (distance in 7 s minus distance in 6 s). <i>Why? “In the 7th second” means between 6 and 7 seconds.</i></div></div>
+<div class="kw"><q>“meet”, “collide”, “passes”</q><div>Same place, same time: set the two <b>s</b> values equal (mind who started later).</div></div>
+<div class="kw"><q>trains/cars “pass each other”</q><div>Opposite directions: <b>add the lengths</b>, and the speeds <b>add</b> too (relative speed). Same direction: subtract the speeds.</div></div>
+<div class="kw"><q>“average speed”</q><div><b>Total distance ÷ total time.</b> The shortcut (u+v)/2 only works for one stretch of constant acceleration.</div></div></div></details>
+
+<details><summary>🍎 Gravity, up and down (projectiles)</summary><div class="in">
+<p>Going up, the ball slows by 9.8 m/s every second. Coming down, it speeds up by 9.8 m/s every second. So:</p>
+<p>⬆️ Time up = time down (it’s symmetrical).<br>⏸️ At the top: <b>v = 0</b>.<br>🔁 It lands back at the start with the <b>same speed</b> it left with, just pointing down.<br>⏱️ Time to the top: t = u ÷ 9.8. Max height: h = u² ÷ 19.6.</p>
+<div class="tip warn">⚠️ <b>“Between two instants it is 39.2 m high”</b> (a ball going up <i>and</i> coming down): you get <b>two</b> times, once on the way up, once on the way down. The answer is the difference between them.</div></div></details>
+
+<details><summary>⚠️ Traps that catch people</summary><div class="in">
+<div class="tip warn"><b>Distance ≠ displacement.</b> A ball thrown up and back down travels 2× the height as <i>distance</i>, but its displacement is smaller. Read whether it asks for “distance travelled” or “how far from the start”.</div>
+<div class="tip warn"><b>Units.</b> Check minutes → seconds (2 minutes = 120 s) and km/h → m/s (divide by 3.6).</div>
+<div class="tip warn"><b>Quadratics give two answers.</b> A negative time (or one that doesn’t fit the story) is thrown away.</div>
+<div class="tip warn"><b>Signs.</b> Pick up or down as positive and stay consistent; mixing them is the number one cause of wrong answers.</div>
+<div class="tip warn"><b>Don’t assume v = 0.</b> Only use it for “comes to rest”, “stops” or “at the top”.</div>
+<div class="tip warn"><b>Two stages?</b> The final speed of the first stage is the initial speed (u) of the next.</div></div></details>
+
+<details><summary>📈 Speed–time graphs</summary><div class="in">
+<p>Speed on the up axis, time along the bottom.</p>
+<p>📐 <b>Gradient (slope) = acceleration.</b> Steeper means a bigger a. Flat means a = 0 (constant speed). Sloping down means slowing.</p>
+<p>🟦 <b>Area under the graph = distance.</b> A triangle is ½ × base × height, and a trapezium is the average of the parallel sides × width.</p>
+<p>Questions like “accelerates, cruises, then brakes” are a trapezium: ramp up, flat, ramp down.</p></div></details>
+
+<details><summary>🧪 Two worked examples</summary><div class="in">
+<p><b>Thrown up:</b> A ball is thrown up at 39.2 m/s. How long to reach the top?<br>u = 39.2, v = <b>0</b> (top!), a = −9.8, t = ? &rarr; v = u + at &rarr; 0 = 39.2 − 9.8t &rarr; <b>t = 4 s</b> ✅</p>
+<p><b>Dropped:</b> A ball is dropped from 78.4 m. How long to land?<br>s = 78.4, u = <b>0</b> (dropped), a = 9.8, t = ? &rarr; s = ut + ½at² &rarr; 78.4 = 4.9t² &rarr; <b>t = 4 s</b> ✅ <br>Its landing speed: v = 0 + 9.8 × 4 = <b>39.2 m/s</b>, so v was definitely not 0!</p></div></details>
+<p class="note" style="margin-top:14px">Tip: use g = 9.8 m/s² in every Dueply question.</p>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(()=>{"use strict";
+/* ---------- QUESTION BANK: [topic, text, answer, unit, difficulty 1-3] ----------
+   Changing this array changes future daily puzzles. Append new questions at the END. */
+const B=[
+["Constant acceleration","A car has initial speed u m/s and moves in a straight line with constant acceleration f for 4 s, travelling 40 m. It then moves with uniform speed, travelling 45 m in 3 s. Find u.",5,"m/s",1],
+["Speed–time graphs","A car accelerates uniformly at f for 4 s, travelling 40 m. It then moves at uniform speed, travelling 45 m in 3 s, and is then brought to rest by a constant retardation of 2f. Find the total distance travelled.",107.5,"m",3],
+["Constant acceleration","A particle starts from rest and moves with constant acceleration. It travels 39 m in the seventh second. Find the distance travelled in the tenth second.",57,"m",2],
+["Relative motion","A train of length 66.5 m has uniform acceleration 4/7 m/s². It meets another train of length 91 m on a parallel track, travelling in the opposite direction with uniform acceleration 8/7 m/s². Their speeds at this moment are 18 m/s and 24 m/s. Find the time taken for the trains to pass each other.",3.5,"s",3],
+["Relative motion","Two cars P and Q travel at the same constant velocity 15 m/s along a straight level road. The front of P is 24 m behind the rear of Q. At a given instant both decelerate, P at 4 m/s² and Q at 5 m/s². Find the distance between the cars when they are at rest.",18.375,"m",2],
+["Vertical motion","A ball is thrown vertically upwards at 44.1 m/s. Find the time interval between the instants that the ball is 39.2 m above the point of projection.",7,"s",2],
+["Vertical motion","A particle falls from rest from a point P. When it has fallen 19.6 m, a second particle is projected vertically downwards from P with initial velocity 39.2 m/s. The particles collide at a distance d from P. Find d.",44.1,"m",3],
+["Relative motion","A car starts from rest at A and accelerates uniformly at 1 m/s² towards B, where AB = 1914 m, until it reaches its maximum speed of 32 m/s, and continues at this speed. As the car starts, a bus passes B travelling towards A at a constant 36 m/s. Twelve seconds later the bus decelerates uniformly at 0.75 m/s². The car and bus meet after t seconds. Find t.",40,"s",3],
+["Relative motion","A car starts from rest at A and accelerates at 1 m/s² towards B (AB = 1914 m) until it reaches 32 m/s, then continues at that speed. As the car starts, a bus passes B travelling towards A at a constant 36 m/s. Twelve seconds later the bus decelerates uniformly at 0.75 m/s². Find the distance between the car and the bus after 48 seconds.",352,"m",3],
+["Free fall","A particle is released from rest at A and falls vertically passing two points B and C. It reaches B after t seconds and takes 2t/7 seconds to fall from B to C, a distance of 2.45 m. Find t.",0.875,"s",2],
+["Stopping distance","A car travels at a uniform speed of 14 m/s when the driver notices a traffic light turning red 98 m ahead. Find the minimum constant deceleration required to stop at the light if the driver applies the brake immediately.",2,"m/s2",1],
+["Stopping distance","A car travels at 14 m/s when the driver notices a traffic light turning red 98 m ahead. Find the minimum constant deceleration required to stop at the light if the driver hesitates for 1 second before braking.",7/6,"m/s2",2],
+["Constant acceleration","A particle passes P at 20 m/s and moves in a straight line to Q with uniform acceleration. In the first second after passing P it travels 25 m. In the last 3 seconds before reaching Q it travels 13/20 of |PQ|. Find the distance from P to Q.",300,"m",3],
+["Speed–time graphs","A train accelerates uniformly from rest to a speed v m/s with acceleration f m/s², then decelerates uniformly to rest with retardation 2f m/s². The total distance travelled is d metres. If the average speed for the whole journey is √(d/3), find f.",1,"m/s2",3],
+["Vertical motion","A ball is thrown vertically upwards with an initial velocity of 39.2 m/s. Find the time taken to reach the maximum height.",4,"s",1],
+["Vertical motion","A ball is thrown vertically upwards with an initial velocity of 39.2 m/s. Find the total distance it travels in 5 seconds.",83.3,"m",2],
+["Relative motion","Particles P and Q, each with constant acceleration, move in the same direction along parallel lines. When P passes Q the speeds are 23 m/s and 5.5 m/s. Two minutes later Q passes P, and Q is then moving at 65.5 m/s. Find the acceleration of Q.",0.5,"m/s2",2],
+["Relative motion","Particles P and Q, each with constant acceleration, move in the same direction along parallel lines. When P passes Q the speeds are 23 m/s and 5.5 m/s. Two minutes later Q passes P, and Q is then moving at 65.5 m/s. Find the speed of P when Q overtakes it.",48,"m/s",3],
+["Relative motion","Particles P and Q, each with constant acceleration, move in the same direction along parallel lines. When P passes Q the speeds are 23 m/s and 5.5 m/s. Two minutes later Q passes P, and Q is then moving at 65.5 m/s. Find the distance P is ahead of Q when they are moving with equal speeds.",525,"m",3],
+["Free fall","A particle is projected vertically downwards from the top of a tower with speed u m/s. It takes 4 seconds to reach the bottom. During the third second of its motion it travels 29.9 m. Find u.",5.4,"m/s",2],
+["Free fall","A particle is projected vertically downwards from the top of a tower with speed u m/s. It takes 4 seconds to reach the bottom. During the third second of its motion it travels 29.9 m. Find the height of the tower.",100,"m",2],
+["Relative motion","Two trains P and Q, each of length 79.5 m, move in opposite directions along parallel lines and meet at O when their speeds are 15 m/s and 10 m/s. The acceleration of P is 0.3 m/s² and of Q is 0.2 m/s². Find the distance travelled by P while the trains pass each other.",95.4,"m",3],
+["Relative motion","Two trains P and Q, each of length 79.5 m, move in opposite directions along parallel lines and meet at O when their speeds are 15 m/s and 10 m/s. The acceleration of P is 0.3 m/s² and of Q is 0.2 m/s². Find t, the time in seconds the trains take to pass each other.",6,"s",3],
+];
+const GEN=[
+()=>{const u=2*(4+R(11)),a=2+R(4);return{y:"Stopping distance",t:`A car travelling at ${u} m/s brakes with constant deceleration ${a} m/s². Find the distance it travels before stopping.`,a:u*u/(2*a),u:"m",d:1}},
+()=>{const k=2+R(8);return{y:"Free fall",t:`A ball is dropped from rest. Find the distance it falls in ${k} seconds.`,a:4.9*k*k,u:"m",d:1}},
+()=>{const k=2+R(7);return{y:"Vertical motion",t:`A particle is projected vertically upwards at ${(9.8*k).toFixed(1)} m/s. Find the time until it returns to the point of projection.`,a:2*k,u:"s",d:2}},
+()=>{const a=1+R(4),t=4+R(14);return{y:"Speed–time graphs",t:`A train starts from rest and accelerates uniformly at ${a} m/s² for ${t} s, then moves at constant speed for a further ${t} s. Find the total distance travelled.`,a:1.5*a*t*t,u:"m",d:2}},
+()=>{const u=5+R(20),a=1+R(4),t=3+R(8);return{y:"Constant acceleration",t:`A particle with speed ${u} m/s accelerates uniformly at ${a} m/s² for ${t} s. Find its final speed.`,a:u+a*t,u:"m/s",d:1}},
+];
+const DAILY_N=5,EPOCH="2026-11-22",LIM_D=120,LIM_A=90;
+const RANKS=[[12,"Unstoppable","You don’t guess. You derive. Frankly, it’s unsettling."],[7,"On Fire","Sharp working and a steady hand."],[3,"Warming Up","You know the formulae. Now trust them."],[0,"Rounding Error","The numbers fought dirty. Try again."]];
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s),K="dueply.m.";
+const R=n=>Math.floor(Math.random()*n);
+const st={get(k,d){try{const v=JSON.parse(localStorage.getItem(K+k));return v??d}catch{return d}},set(k,v){try{localStorage.setItem(K+k,JSON.stringify(v))}catch{}}};
+const seed=s=>{let h=1779033703^s.length;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return(h^=h>>>16)>>>0};
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const shuf=(arr,r=Math.random)=>{const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const dayKey=()=>new Date().toISOString().slice(0,10),ms=k=>Date.parse(k+"T00:00:00Z");
+const pNo=k=>Math.max(1,Math.round((ms(k)-ms(EPOCH))/864e5)+1),prev=k=>new Date(ms(k)-864e5).toISOString().slice(0,10);
+const erf=x=>{const s=Math.sign(x);x=Math.abs(x);const t=1/(1+.3275911*x);return s*(1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x))};
+const cdf=z=>.5*(1+erf(z/Math.SQRT2)),clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const mmss=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
+const toBank=r=>({y:String(r[0]),t:r[1],a:r[2],u:r[3],d:r[4]});
+const DU={"m/s":"m s⁻¹","m/s2":"m s⁻²",m:"m",s:"s"};
+const fmtA=q=>+q.a.toFixed(3)+" "+DU[q.u];
+
+/* ---------- sound (Web Audio, no files) ---------- */
+const sfx=(()=>{let ctx=null,master=null,muted=st.get("muted",false);
+const ens=()=>{try{if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;ctx=new AC();master=ctx.createGain();master.gain.value=.7;master.connect(ctx.destination)}if(ctx.state==="suspended")ctx.resume();return ctx}catch{return null}};
+const tone=({f,type="sine",dur=.2,g=.2,at=0,to=null})=>{if(muted||!ens())return;const t=ctx.currentTime+at,o=ctx.createOscillator(),n=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);n.gain.setValueAtTime(.0001,t);n.gain.exponentialRampToValueAtTime(g,t+.01);n.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(n).connect(master);o.start(t);o.stop(t+dur+.05)};
+const noise=(dur,g,freq)=>{if(muted||!ens())return;const t=ctx.currentTime,len=Math.floor(ctx.sampleRate*dur),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);const src=ctx.createBufferSource();src.buffer=buf;const f=ctx.createBiquadFilter();f.type="lowpass";f.frequency.value=freq;const n=ctx.createGain();n.gain.setValueAtTime(g,t);n.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(f).connect(n).connect(master);src.start(t)};
+return{unlock:ens,get muted(){return muted},set(m){muted=m;st.set("muted",m)},
+tick(){tone({f:1500,type:"triangle",dur:.035,g:.05})},
+chime(){[659.25,783.99,987.77,1318.51].forEach((f,i)=>{tone({f,dur:.55,g:.14,at:i*.075});tone({f:f*2,type:"triangle",dur:.25,g:.025,at:i*.075})})},
+half(){[523.25,659.25].forEach((f,i)=>tone({f,dur:.4,g:.12,at:i*.09}))},
+thud(){tone({f:140,dur:.45,g:.5,to:42});tone({f:90,type:"triangle",dur:.3,g:.15,to:50});noise(.25,.25,300)},
+fanfare(){[523.25,659.25,783.99,1046.5,1318.51].forEach((f,i)=>tone({f,dur:.6,g:.12,at:i*.1}))}}})();
+const reduce=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function confetti(){if(reduce())return;const c=["#F4D58A","#D9A949","#2FD38A","#7E9CC0","#FF7A66"];for(let i=0;i<32;i++){const n=document.createElement("span");n.className="conf";n.style.cssText=`left:${Math.random()*100}vw;background:${c[i%5]};animation-delay:${Math.random()*.6}s;animation-duration:${1.8+Math.random()*1.4}s`;document.body.appendChild(n);setTimeout(()=>n.remove(),3500)}}
+function countUp(t,to,D){if(!D||reduce()){t.textContent=to;return}const s0=performance.now();(function f(n){const k=Math.min(1,(n-s0)/D);t.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(s0)}
+
+/* ---------- answer checking ---------- */
+const OKU={"m/s":["","m","ms","m/s","ms-1","m/s-1"],"m/s2":["","ms","m/s2","ms-2","m/s-2"],m:["","m"],s:["","s"]};
+function normU(u){return u.toLowerCase().replace(/\s+/g,"").replace(/[\^()]/g,"").replace(/metres?|meters?/g,"m").replace(/seconds?|secs?/g,"s").replace(/⁻¹/g,"-1").replace(/⁻²/g,"-2").replace(/²/g,"2").replace(/\.$/,"")}
+function parse(s){s=s.trim().replace(/,/g,"").replace(/[−–]/g,"-");const m=s.match(/^(-?\d*\.?\d+)(?:\s*\/\s*(\d*\.?\d+))?\s*(.*)$/);if(!m)return null;let v=+m[1];if(m[2])v/=+m[2];return{v,u:normU(m[3])}}
+// pts: 100 correct, 40 right number with a wrong unit OR within 3%, 0 otherwise
+function grade(q,raw){
+  const p=parse(raw);if(!p||!isFinite(p.v))return{pts:0,why:"We couldn’t read a number in that."};
+  const err=Math.abs(p.v-q.a),tol=Math.max(.005*Math.abs(q.a),.006),unitOk=OKU[q.u].includes(p.u);
+  if(err<=tol)return unitOk?{pts:100,why:""}:{pts:40,why:"Right number, but the unit should be "+DU[q.u]+"."};
+  if(err<=.03*Math.abs(q.a)+.006)return{pts:40,why:"Close, but not accurate enough."};
+  return{pts:0,why:""};
+}
+const tier=p=>p>=100?"ok":p>0?"half":"miss";
+
+/* ---------- state ---------- */
+const S={dg:0,ag:0,unlock:null,mode:"daily",q:null,t0:0,limit:LIM_D,locked:true,timer:null,next:null,
+  daily:null,arc:{playing:false,streak:0,best:st.get("best",0),used:new Set(),log:[],startBest:0,miss:null}};
+const el={yr:$("#yr"),tD:$("#tD"),tA:$("#tA"),dn:$("#dn"),l1:$("#l1"),v1:$("#v1"),l2:$("#l2"),v2:$("#v2"),bar:$("#bar"),rn:$("#rn"),tm:$("#tm"),game:$("#game"),q:$("#q"),inp:$("#in"),go:$("#go"),fb:$("#fb"),res:$("#res"),over:$("#over"),toast:$("#toast")};
+const show=w=>{el.game.hidden=el.bar.hidden=w!=="game";el.res.hidden=w!=="res";el.over.hidden=w!=="over";if(w!=="res")stopCd()};
+function toast(m){el.toast.textContent=m;el.toast.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.toast.classList.remove("show"),2200)}
+async function copy(t){try{await navigator.clipboard.writeText(t);return true}catch{return false}}
+
+/* ---------- daily ---------- */
+function buildDaily(key){const r=rng(seed("dueply-m:"+key));return shuf(B.map(toBank),r).slice(0,DAILY_N).sort((a,b)=>a.d-b.d)}
+function initDaily(){const key=dayKey(),sv=st.get("daily",null);let res=sv&&sv.key===key&&Array.isArray(sv.res)?sv.res:[];S.daily={key,no:pNo(key),qs:buildDaily(key),res};el.dn.textContent="#"+S.daily.no}
+const dScore=()=>S.daily.res.reduce((s,r)=>s+r.pts,0);
+function model(qs){let m=0,v=0;for(const q of qs){const p=[.8,.55,.32][q.d-1]*.97;m+=100*p;v+=1e4*p*(1-p)}return{mean:m,sd:Math.sqrt(v)*1.2+12}}
+function stats(){const s=st.get("stats",{});return{played:s.played|0,streak:s.streak|0,last:s.last||""}}
+function recordDaily(){const s=stats();if(s.last===S.daily.key)return s;s.streak=s.last===prev(S.daily.key)?s.streak+1:1;s.played++;s.last=S.daily.key;st.set("stats",s);return s}
+
+/* ---------- round flow ---------- */
+function present(q,limit){
+  S.q=q;S.limit=limit;S.locked=false;S.next=null;
+  el.game.className="card";el.yr.textContent=q.y;el.q.textContent=q.t;el.inp.value="";el.inp.disabled=false;el.go.textContent="SUBMIT";el.fb.textContent="";
+  S.t0=performance.now();clearInterval(S.timer);S.timer=setInterval(tick,250);tick();
+  el.inp.focus({preventScroll:true});
+}
+function tick(){
+  const left=Math.max(0,S.limit-(performance.now()-S.t0)/1000);
+  const c=Math.ceil(left);el.tm.textContent=mmss(c);el.tm.classList.toggle("low",left<=15);if(c<=5&&c>0&&c!==S.lastSec&&!S.locked)sfx.tick();S.lastSec=c;
+  if(left<=0&&!S.locked)submit(true);
+}
+function submit(timeout=false){
+  if(S.locked){if(S.next)S.next();return}
+  const raw=el.inp.value.trim();
+  if(!raw&&!timeout){el.fb.textContent="Type an answer first.";return}
+  S.locked=true;sfx.unlock();clearInterval(S.timer);el.inp.disabled=true;
+  const sec=Math.min(S.limit,(performance.now()-S.t0)/1000),q=S.q;
+  const g=timeout?{pts:0,why:"Time’s up."}:grade(q,raw),t=tier(g.pts);
+  if(t==="ok")sfx.chime();else if(t==="half")sfx.half();else{sfx.thud();el.game.classList.add("shake");try{navigator.vibrate&&navigator.vibrate(50)}catch{}}
+  if(g.pts>0)addXP(xpFor(q,g.pts));
+  el.game.classList.add("c-"+t);
+  const b=document.createElement("b");b.className=t==="ok"?"good":t==="half"?"half":"miss";
+  b.textContent=t==="ok"?"Correct!":t==="half"?"Almost.":"Not quite.";
+  el.fb.replaceChildren(b," The answer is ",Object.assign(document.createElement("b"),{textContent:fmtA(q)}),". "+g.why+(S.mode==="daily"?` (+${g.pts})`:""));
+  const rec={pts:g.pts,sec:Math.round(sec),g:raw};
+  if(S.mode==="daily"){
+    S.daily.res.push(rec);st.set("daily",{key:S.daily.key,res:S.daily.res});renderDailyHead();
+    const done=S.daily.res.length>=DAILY_N;el.go.textContent=done?"SEE RESULTS →":"NEXT →";
+    S.next=done?finishDaily:nextDaily;
+  }else arcAfter(g.pts===100);
+  el.go.focus({preventScroll:true});
+}
+function renderDailyHead(){
+  const d=S.daily,i=Math.min(d.res.length+1,DAILY_N);
+  el.rn.replaceChildren("Round ",Object.assign(document.createElement("b"),{textContent:i})," / "+DAILY_N);
+  el.l1.textContent="Score";el.v1.textContent=dScore();el.l2.textContent="Round";el.v2.textContent=i+"/"+DAILY_N;
+}
+function nextDaily(){present(S.daily.qs[S.daily.res.length],LIM_D);renderDailyHead()}
+
+/* ---------- mode switching ---------- */
+function enter(mode){
+  S.mode=mode;clearInterval(S.timer);
+  el.tD.setAttribute("aria-selected",mode==="daily");el.tA.setAttribute("aria-selected",mode==="arcade");
+  if(mode==="daily"){
+    if(S.daily.key!==dayKey())initDaily();
+    if(S.daily.res.length>=DAILY_N){showResults();return}
+    show("game");nextDaily();
+  }else{
+    show("game");
+    if(!S.arc.playing)newArcade();else{arcHead();present(S.arc.cur,LIM_A)}
+  }
+}
+
+/* ---------- arcade ---------- */
+function drawQ(){
+  const A=S.arc,left=B.map((r,i)=>i).filter(i=>!A.used.has(i));
+  if(left.length&&Math.random()<.55){const i=left[R(left.length)];A.used.add(i);return toBank(B[i])}
+  return GEN[R(GEN.length)]();
+}
+function arcHead(){
+  const A=S.arc;el.rn.replaceChildren("Run · Round ",Object.assign(document.createElement("b"),{textContent:A.streak+1}));
+  el.l1.textContent="Streak";el.v1.textContent=A.streak;el.l2.textContent="Best";el.v2.textContent=A.best;
+}
+function newArcade(){const A=S.arc;A.used.clear();S.ag=0;A.streak=0;A.log=[];A.miss=null;A.startBest=A.best;A.playing=true;A.cur=drawQ();arcHead();present(A.cur,LIM_A)}
+function arcAfter(ok){
+  const A=S.arc;A.log.push(ok);
+  if(!ok){A.playing=false;A.miss=A.cur;S.next=showOver;el.go.textContent="CONTINUE →";return}
+  A.streak++;if(A.streak>A.best){A.best=A.streak;st.set("best",A.best);checkTitle()}
+  el.v1.textContent=A.streak;el.v2.textContent=A.best;
+  S.next=()=>{A.cur=drawQ();arcHead();present(A.cur,LIM_A)};el.go.textContent="NEXT →";
+}
+const rankFor=n=>RANKS.find(r=>n>=r[0]);
+function showOver(){
+  const A=S.arc,r=rankFor(A.streak);show("over");
+  $("#ot").textContent=A.streak>0&&A.streak>A.startBest?"NEW PERSONAL BEST!":"RUN OVER";
+  $("#os").textContent=A.streak;$("#ob").textContent=A.best;$("#orank").textContent="Run rating: "+r[1];rankBox($("#rbO"),S.ag);
+  $("#oreveal").textContent=r[2]+" The last answer was "+fmtA(A.miss)+".";
+  $("#toDaily").hidden=S.daily.res.length>=DAILY_N;
+}
+const arcShare=()=>`Dueply IQ Trainer · Streak ${S.arc.streak}\n${S.arc.log.slice(0,15).map(x=>x?"🟩":"🟥").join("")}\n${rankFor(S.arc.streak)[1]} · Best ${S.arc.best}\n${site()}`;
+
+/* ---------- daily results ---------- */
+function finishDaily(){const s=recordDaily(),perfect=S.daily.res.every(r=>r.pts===100);addXP(20+(perfect?50:0)+5*Math.min(s.streak,10));sfx.fanfare();showResults(true)}
+function showResults(anim){
+  const d=S.daily,score=dScore(),max=DAILY_N*100,m=model(d.qs),beat=clamp(Math.round(cdf((score-m.mean)/m.sd)*100),1,99),top=100-beat,s=stats();
+  show("res");el.l1.textContent="Score";el.v1.textContent=score;el.l2.textContent="Today";el.v2.textContent=top<=50?"Top "+top+"%":"Beat "+beat+"%";
+  $("#re").textContent=`Dueply #${d.no} · ${new Date(ms(d.key)).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})}`;
+  countUp($("#rs"),score,anim?1100:0);$("#rmax").textContent="/ "+max;
+  const v=$("#rv");v.replaceChildren(...(top<=50?["You scored in the ",Object.assign(document.createElement("em"),{textContent:"top "+top+"%"})," today! "+(top<=10?"🔥":"⚡")]:["You beat ",Object.assign(document.createElement("em"),{textContent:beat+"%"})," of players today. "+(beat>=25?"💪":"🌱")]));
+  const avg=Math.round(m.mean),diff=score-avg;
+  $("#rsub").textContent=`The average player scores about ${avg}. You were ${Math.abs(diff)} pts ${diff>=0?"above":"below"} that${diff>=0?" (+"+Math.round(diff/avg*100)+"%)":""}.`;
+  drawDist(m,score,max);
+  $("#tiles").replaceChildren(...d.res.map(r=>Object.assign(document.createElement("div"),{className:"tile t-"+tier(r.pts),textContent:r.pts})));
+  $("#s1").textContent=d.res.filter(r=>r.pts===100).length+"/"+DAILY_N;$("#s2").textContent=mmss(d.res.reduce((a,r)=>a+r.sec,0));$("#s3").textContent=s.streak;$("#s4").textContent=s.played;
+  rankBox($("#rbR"),anim?S.dg:0);startCd();if(anim&&top<=50)confetti();
+}
+function drawDist(m,score,max){const W=560,H=150,top=26,base=116,X=v=>10+v/max*(W-20),pdf=x=>Math.exp(-.5*Math.pow((x-m.mean)/m.sd,2)),Y=v=>base-pdf(v)*(base-top),ns='http://www.w3.org/2000/svg',mk=(t,a,x)=>{const n=document.createElementNS(ns,t);for(const k in a)n.setAttribute(k,a[k]);if(x!==undefined)n.textContent=x;return n};
+  const pts=[];for(let v=0;v<=max;v+=max/80)pts.push([X(v),Y(v)]);const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' '),area=`${line} L ${X(max)} ${base} L ${X(0)} ${base} Z`,you=clamp(score,0,max),avg=clamp(m.mean,0,max),right=you>=avg;
+  const defs=mk('defs',{}),cp=mk('clipPath',{id:'yc'});cp.appendChild(mk('rect',{x:0,y:0,width:X(you),height:H}));const gr=mk('linearGradient',{id:'yf',x1:0,y1:0,x2:0,y2:1});gr.append(mk('stop',{offset:0,'stop-color':'#F4D58A','stop-opacity':.45}),mk('stop',{offset:1,'stop-color':'#D9A949','stop-opacity':.05}));defs.append(cp,gr);
+  const kids=[defs,mk('path',{d:area,fill:'rgba(255,255,255,0.04)'}),mk('path',{d:area,fill:'url(#yf)','clip-path':'url(#yc)'}),mk('path',{d:line,fill:'none',stroke:'rgba(226,190,120,0.45)','stroke-width':1.5}),mk('line',{x1:X(0),x2:X(max),y1:base,y2:base,stroke:'rgba(226,190,120,0.2)'})];
+  for(let i=0;i<=4;i++){const v=max/4*i;kids.push(mk('text',{x:X(v),y:base+18,'text-anchor':i===0?'start':i===4?'end':'middle',fill:'#5B6371','font-size':11,'font-family':'Space Grotesk,sans-serif'},String(Math.round(v))))}
+  kids.push(mk('line',{x1:X(avg),x2:X(avg),y1:Y(avg)-2,y2:base,stroke:'#8E96A3','stroke-dasharray':'3 4','stroke-width':1.2}),mk('text',{x:X(avg)+(right?-6:6),y:Y(avg)-8,'text-anchor':right?'end':'start',fill:'#8E96A3','font-size':11,'font-weight':600,'letter-spacing':'0.12em','font-family':'Inter,sans-serif'},'AVG '+Math.round(m.mean)),mk('line',{x1:X(you),x2:X(you),y1:8,y2:base,stroke:'#F4D58A','stroke-width':2}),mk('circle',{cx:X(you),cy:8,r:4,fill:'#F4D58A'}),mk('text',{x:X(you)+(right?8:-8),y:12,'text-anchor':right?'start':'end',fill:'#F4D58A','font-size':12,'font-weight':700,'letter-spacing':'0.12em','font-family':'Inter,sans-serif'},'YOU '+score));
+  $('#distSvg').replaceChildren(...kids)}
+const site=()=>{try{return location.origin&&location.origin!=="null"?location.origin+location.pathname:""}catch{return""}};
+function dailyShare(){const d=S.daily,sc=dScore(),m=model(d.qs),beat=clamp(Math.round(cdf((sc-m.mean)/m.sd)*100),1,99),E={ok:"🟩",half:"🟨",miss:"🟥"};
+  return[`Dueply #${d.no} · ${sc}/${DAILY_N*100}`,beat>=50?`Top ${100-beat}% today ⚡`:`Beat ${beat}% of players`,d.res.map(r=>E[tier(r.pts)]).join(""),site()].filter(Boolean).join("\n")}
+let cdT=null;
+function startCd(){stopCd();const t=()=>{if(dayKey()!==S.daily.key){$("#cd").textContent="Ready: reload";stopCd();return}const s=Math.max(0,Math.floor((ms(dayKey())+864e5-Date.now())/1e3));$("#cd").textContent=[s/3600|0,(s/60|0)%60,s%60].map(x=>String(x).padStart(2,"0")).join(":")};t();cdT=setInterval(t,1e3)}
+function stopCd(){clearInterval(cdT)}
+
+/* ---------- titles: [xp, best arcade streak, daily days played, name, description] ----------
+   A title needs ALL THREE requirements, so it can't be rushed. Add new ones at the end only. */
+const TITLES=[[0,0,0,"Edward Elric","“A lesson without pain is meaningless.”","img/ed.jpg"],[150,0,2,"Shikamaru","“Think ten moves ahead, then win in three.”","img/shikamaru.jpg"],[500,3,5,"Urahara","“A smile hides the plan. Always.”","img/urahara.jpg"],[1200,6,12,"Senku","“Ten billion percent.”","img/senku.jpg"],[2500,10,25,"Ayanokouji","“Winning is just calculation done quietly.”","img/ayanokouji.jpg"],[5000,15,45,"Light Yagami","“I will be the god of the new world.”","img/light.jpg"],[12000,25,100,"L","“I always win. That is the only plan.”","img/l.jpg"],[30000,45,200,"Archimedes","“Give me a place to stand, and I will move the Earth.”","img/archimedes.jpg"],[60000,60,365,"Isaac Newton","“If I have seen further, it is by standing on the shoulders of giants.”","img/newton.jpg"]];
+const av=(t,c)=>{const i=document.createElement("img");i.src=t[5];i.alt=t[3];i.className="av "+(c||"");i.loading="lazy";return i};
+const nd=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n};
+const fmtN=n=>n.toLocaleString("en-US");
+const meets=(t,p)=>p.xp>=t[0]&&p.bs>=t[1]&&p.days>=t[2];
+function prog(){const p={xp:st.get("xp",0),bs:S.arc.best,days:stats().played,i:0};while(p.i+1<TITLES.length&&meets(TITLES[p.i+1],p))p.i++;return p}
+const xpFor=(q,pts)=>pts===100?[0,10,12,15][q.d]:3;
+function renderChip(){const t=TITLES[prog().i];$("#rank").replaceChildren(av(t,"sm"),t[3])}
+function addXP(n){st.set("xp",st.get("xp",0)+n);if(S.mode==="daily")S.dg+=n;else S.ag+=n;checkTitle()}
+function checkTitle(){const p=prog(),old=st.get("ti",0);renderChip();if(p.i>old){st.set("ti",p.i);S.unlock=TITLES[p.i][3];toast("🏆 New rank: "+S.unlock);sfx.fanfare()}}
+function rankBox(host,gain){
+  const p=prog(),T=TITLES[p.i],N=TITLES[p.i+1];host.className="rankbox";host.replaceChildren();
+  const h=nd("p","verdict",T[3]+" ");if(S.unlock===T[3])h.append(nd("span","new","NEW"));
+  const hd=nd("div","rb-top");hd.append(av(T,"lg"),h);
+  host.append(nd("div","eyebrow","Your rank"),hd,nd("p","note",T[4]),nd("p","note",(gain>0?"+"+gain+" XP this session · ":"")+fmtN(p.xp)+" XP total"));
+  if(N){const b=nd("div","pb"),i=nd("i");i.style.width=clamp((p.xp-T[0])/(N[0]-T[0]),0,1)*100+"%";b.append(i);
+    const need=[];if(p.xp<N[0])need.push(fmtN(N[0]-p.xp)+" more XP");if(p.bs<N[1])need.push("an IQ Trainer streak of "+N[1]+" (your best is "+p.bs+")");if(p.days<N[2])need.push((N[2]-p.days)+" more daily days");
+    host.append(b,nd("p","note","Next: "+N[3]+" needs "+need.join(", ")+"."))}else host.append(nd("p","note","Top title reached. Legend."));
+  S.unlock=null}
+function openRanks(){const p=prog();$("#ovl").replaceChildren(...TITLES.map((t,i)=>{const r=nd("div","tr"+(i===p.i?" cur":i>p.i?" lock":""));const l=nd("div");l.append(nd("b","",t[3]),nd("small","",t[4]),nd("small","",fmtN(t[0])+" XP · IQ Trainer streak "+t[1]+" · "+t[2]+" daily days"));const w=nd("div","tr-l");w.append(av(t),l);r.append(w,nd("span","note",i===p.i?"You":i<p.i?"Done":"🔒"));return r}));$("#ov").hidden=false}
+
+/* ---------- events ---------- */
+el.go.addEventListener("click",()=>submit());
+el.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit()}});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&S.locked&&S.next&&document.activeElement===document.body){e.preventDefault();S.next()}});
+el.tD.addEventListener("click",()=>S.mode!=="daily"&&enter("daily"));
+el.tA.addEventListener("click",()=>S.mode!=="arcade"&&enter("arcade"));
+$("#share").addEventListener("click",async()=>toast(await copy(dailyShare())?"Share grid copied.":"Clipboard blocked by this browser."));
+$("#shareA").addEventListener("click",async()=>toast(await copy(arcShare())?"Streak copied.":"Clipboard blocked by this browser."));
+$("#toArc").addEventListener("click",()=>enter("arcade"));
+$("#again").addEventListener("click",()=>{show("game");newArcade()});
+$("#toDaily").addEventListener("click",()=>{S.arc.playing=false;enter("daily")});
+
+const syncMute=()=>{$("#mute").textContent=sfx.muted?"🔇":"🔊";$("#mute").setAttribute("aria-label",sfx.muted?"Unmute sound":"Mute sound")};
+$("#mute").addEventListener("click",()=>{sfx.set(!sfx.muted);syncMute();if(!sfx.muted){sfx.unlock();sfx.tick()}});
+window.addEventListener("pointerdown",()=>sfx.unlock(),{once:true});
+$("#rank").addEventListener("click",openRanks);$("#ovx").addEventListener("click",()=>$("#ov").hidden=true);$("#ov").addEventListener("click",e=>{if(e.target.id==="ov")$("#ov").hidden=true});
+$("#how").addEventListener("click",()=>$("#gd").hidden=false);$("#gdx").addEventListener("click",()=>$("#gd").hidden=true);$("#gd").addEventListener("click",e=>{if(e.target.id==="gd")$("#gd").hidden=true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#ov").hidden=true;$("#gd").hidden=true}});
+syncMute();initDaily();renderChip();st.set("ti",Math.max(st.get("ti",0),0));enter("daily");
+})();
+</script>
+</body>
+</html>
