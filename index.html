@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>THE SCALE — Higher or Lower?</title>
+<meta name="description" content="THE SCALE: a higher-or-lower trivia game of wildly different real-world numbers. How long can your streak survive?" />
+<meta name="theme-color" content="#0E1116" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1116'/%3E%3Cpath d='M32 12v38M16 50h32M12 22h40' stroke='%23D9A949' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M12 22l-6 14h12zM52 22l-6 14h12z' fill='none' stroke='%23D9A949' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================
+   1. TOKENS
+   ========================================================= */
+:root {
+  --ink: #0E1116;
+  --ink-2: #131821;
+  --ink-3: #19202B;
+  --ink-4: #222A37;
+  --line: rgba(226, 190, 120, 0.14);
+  --line-strong: rgba(226, 190, 120, 0.32);
+  --brass: #D9A949;
+  --brass-hi: #F4D58A;
+  --brass-deep: #8C6A26;
+  --text: #EDE8DD;
+  --muted: #8B93A1;
+  --faint: #5A6270;
+  --emerald: #2FD38A;
+  --emerald-deep: #0F6B45;
+  --crimson: #FF4D5E;
+  --coral: #FF7A66;
+
+  --radius: 22px;
+  --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --enter-x: 70px;
+  --enter-y: 0px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+
+body {
+  font-family: var(--body);
+  color: var(--text);
+  background-color: var(--ink);
+  background-image:
+    radial-gradient(1200px 700px at 50% -10%, rgba(217, 169, 73, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 50% 120%, rgba(47, 90, 140, 0.10), transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1.4px);
+  background-size: auto, auto, 22px 22px;
+  background-attachment: fixed;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* soft vignette */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  z-index: 0;
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
+
+.app {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 18px clamp(14px, 3vw, 32px) 18px;
+}
+
+/* =========================================================
+   2. HEADER
+   ========================================================= */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand svg { flex: none; width: 38px; height: 38px; }
+.brand-text { line-height: 1; min-width: 0; }
+.brand h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: 0.18em;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 60%, var(--brass-deep));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.brand p {
+  margin: 5px 0 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud { display: flex; align-items: center; gap: 10px; }
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(19, 24, 33, 0.7);
+  min-width: 78px;
+}
+.stat span {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat b {
+  font-family: var(--display);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+.stat.best b { color: var(--brass-hi); }
+.stat.bump b { animation: bump 0.5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); color: var(--emerald); } 100% { transform: scale(1); } }
+
+.icon-btn {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(19, 24, 33, 0.7);
+  color: var(--brass-hi);
+  transition: background .2s, border-color .2s, transform .15s;
+}
+.icon-btn:hover { background: var(--ink-3); border-color: var(--line-strong); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn .ic-off { display: none; }
+.icon-btn[aria-pressed="true"] .ic-on { display: none; }
+.icon-btn[aria-pressed="true"] .ic-off { display: block; }
+.icon-btn[aria-pressed="true"] { color: var(--muted); }
+
+/* =========================================================
+   3. STAGE + CARDS
+   ========================================================= */
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  padding: 26px 0 10px;
+}
+
+.arena {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: stretch;
+}
+.arena.shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97); }
+@keyframes shake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+  40%, 60% { transform: translate3d(7px, 0, 0); }
+}
+
+.card {
+  --cat: var(--brass);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+  padding: 22px 26px 20px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), transparent 30%),
+    linear-gradient(160deg, var(--ink-3), var(--ink-2) 70%);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 30px 60px -30px rgba(0,0,0,0.8),
+    0 0 0 1px rgba(0,0,0,0.4);
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+/* brass top edge */
+.card::before {
+  content: "";
+  position: absolute; left: 24px; right: 24px; top: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cat), transparent);
+  opacity: 0.8;
+}
+/* result flash layer */
+.card::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+.card.correct::after {
+  background: radial-gradient(120% 80% at 50% 60%, rgba(47,211,138,0.28), transparent 65%);
+  box-shadow: inset 0 0 0 2px var(--emerald), 0 0 60px rgba(47,211,138,0.35);
+  animation: flash 1s ease-out forwards;
+}
+.card.wrong::after {
+  background: radial-gradient(120% 80% at 50% 60%, rgba(255,77,94,0.3), transparent 65%);
+  box-shadow: inset 0 0 0 2px var(--crimson), 0 0 60px rgba(255,77,94,0.35);
+  animation: flash 1.2s ease-out forwards;
+}
+@keyframes flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0.55; } }
+
+/* giant outlined exhibit numeral watermark */
+.wm {
+  position: absolute;
+  right: -10px; bottom: -34px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 11rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(226, 190, 120, 0.09);
+  z-index: -1;
+  user-select: none;
+  pointer-events: none;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.exhibit {
+  font-family: var(--display);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cat);
+  background: color-mix(in srgb, var(--cat) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat) 35%, transparent);
+}
+.pill::before {
+  content: "";
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cat);
+  box-shadow: 0 0 10px var(--cat);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 18px 0 8px;
+}
+.title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.45rem, 2.5vw, 2.05rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.num {
+  margin: 18px 0 8px;
+  min-height: 1.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 4.6vw, 4.1rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  color: var(--brass-hi);
+  text-shadow: 0 0 40px rgba(217,169,73,0.25);
+  white-space: nowrap;
+}
+.num.long { font-size: clamp(2rem, 3.5vw, 3.15rem); }
+.num.xlong { font-size: clamp(1.65rem, 2.8vw, 2.6rem); }
+.num.mystery {
+  color: transparent;
+  background: linear-gradient(100deg, var(--brass-deep) 20%, var(--brass-hi) 45%, var(--brass-deep) 70%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  text-shadow: none;
+  letter-spacing: 0.12em;
+  animation: shimmer 2.6s linear infinite;
+}
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.num.rolling { color: var(--text); text-shadow: 0 0 30px rgba(255,255,255,0.15); }
+.card.correct .num { color: var(--emerald); text-shadow: 0 0 40px rgba(47,211,138,0.35); }
+.card.wrong .num { color: var(--crimson); text-shadow: 0 0 40px rgba(255,77,94,0.35); }
+
+.desc {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--muted);
+  max-width: 30ch;
+  text-wrap: balance;
+}
+
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  min-height: 20px;
+}
+.note {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* actions (Card B only) */
+.actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  width: 100%;
+  max-width: 360px;
+  transition: opacity .25s, transform .25s;
+}
+.actions .ask {
+  margin: 0 0 2px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.actions .ask b { color: var(--text); font-weight: 600; }
+.card[data-role="a"] .actions { display: none; }
+.card.locked .actions { opacity: 0; transform: translateY(8px); pointer-events: none; }
+
+.guess {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  border-radius: 14px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.08rem;
+  letter-spacing: 0.16em;
+  border: 1px solid;
+  transition: transform .12s, box-shadow .2s, background .2s;
+}
+.guess .arrow { font-size: 0.95rem; }
+.guess kbd {
+  position: absolute; right: 14px;
+  font-family: var(--body);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+}
+.guess.higher {
+  color: #0E1116;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+  border-color: var(--brass-hi);
+  box-shadow: 0 10px 30px -12px rgba(217,169,73,0.7), inset 0 -3px 0 rgba(0,0,0,0.18);
+}
+.guess.lower {
+  color: var(--brass-hi);
+  background: rgba(217,169,73,0.06);
+  border-color: var(--line-strong);
+}
+.guess:hover { transform: translateY(-2px); }
+.guess.higher:hover { box-shadow: 0 16px 34px -12px rgba(217,169,73,0.85), inset 0 -3px 0 rgba(0,0,0,0.18); }
+.guess.lower:hover { background: rgba(217,169,73,0.12); }
+.guess:active { transform: translateY(1px) scale(0.985); }
+
+/* slide choreography */
+.card.exit { transition: transform .55s cubic-bezier(.6,0,.4,1), opacity .4s ease; opacity: 0; }
+.card.move { transition: transform .58s cubic-bezier(.65,0,.3,1); }
+.card.enter { animation: enter .55s cubic-bezier(.2,.9,.25,1) both; }
+@keyframes enter {
+  from { opacity: 0; transform: translate(var(--enter-x), var(--enter-y)) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.no-anim, .no-anim * { transition: none !important; }
+
+/* =========================================================
+   4. VS BADGE
+   ========================================================= */
+.vs {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 84px; height: 84px;
+  --vs-base: translate(-50%, -50%);
+  transform: var(--vs-base);
+  z-index: 5;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  --vs: var(--brass);
+  --vs-hi: var(--brass-hi);
+  transition: transform .4s cubic-bezier(.3,1.6,.5,1);
+}
+.vs::before {
+  content: "";
+  position: absolute; inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 20%, var(--vs-hi) 30%, transparent 45% 70%, var(--vs) 80%, transparent 95%);
+  filter: blur(0.5px);
+  opacity: 0.75;
+  animation: spin 4s linear infinite;
+}
+.vs::after {
+  content: "";
+  position: absolute; inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--vs) 45%, transparent), transparent 70%);
+  animation: pulse 2.2s ease-in-out infinite;
+  z-index: -1;
+}
+.vs-core {
+  position: relative;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, var(--ink-4), var(--ink) 75%);
+  border: 2px solid var(--vs);
+  box-shadow: 0 0 0 6px var(--ink), 0 0 30px color-mix(in srgb, var(--vs) 55%, transparent), inset 0 0 18px color-mix(in srgb, var(--vs) 30%, transparent);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--vs-hi);
+  transition: border-color .3s, color .3s, box-shadow .3s;
+}
+.vs-core .mark { display: none; font-size: 1.9rem; }
+.vs.rolling::before { animation-duration: .7s; opacity: 1; }
+.vs.rolling::after { animation-duration: .5s; }
+.vs.win { --vs: var(--emerald); --vs-hi: #8BF5C3; transform: var(--vs-base) scale(1.12); }
+.vs.lose { --vs: var(--crimson); --vs-hi: #FF9AA4; transform: var(--vs-base) scale(1.12); }
+.vs.win .label, .vs.lose .label { display: none; }
+.vs.win .ok, .vs.lose .no { display: block; }
+.vs.win::after, .vs.lose::after { animation: none; opacity: 1; }
+.vs.swap { transform: var(--vs-base) scale(0.85) rotate(180deg); transition-duration: .55s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 0.85; transform: scale(1.08); } }
+
+/* =========================================================
+   5. MAGNITUDE RAIL
+   ========================================================= */
+.rail-wrap {
+  padding: 14px 18px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(19, 24, 33, 0.6);
+}
+.rail-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 12px;
+}
+.rail-head .legend { display: flex; gap: 14px; }
+.rail-head .legend i {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  margin-right: 6px; vertical-align: -1px;
+}
+.rail {
+  position: relative;
+  height: 34px;
+}
+.rail-line {
+  position: absolute; left: 0; right: 0; top: 10px; height: 2px;
+  background: linear-gradient(90deg, var(--ink-4), var(--line-strong), var(--ink-4));
+  border-radius: 2px;
+}
+.tick {
+  position: absolute; top: 6px;
+  width: 1px; height: 10px;
+  background: var(--faint);
+  opacity: 0.6;
+}
+.tick.major { height: 14px; top: 4px; background: var(--muted); }
+.tick-label {
+  position: absolute; top: 20px;
+  transform: translateX(-50%);
+  font-family: var(--display);
+  font-size: 0.66rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.pin {
+  position: absolute; top: 11px;
+  width: 16px; height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  transition: left .6s cubic-bezier(.65,0,.3,1), opacity .3s, background .3s;
+  z-index: 2;
+}
+.pin.a { background: var(--brass); box-shadow: 0 0 0 3px rgba(217,169,73,0.25), 0 0 14px var(--brass); }
+.pin.b { background: var(--text); box-shadow: 0 0 0 3px rgba(255,255,255,0.15); opacity: 0; transition: opacity .2s, background .3s; }
+.pin.b.live { opacity: 1; }
+.pin.b.good { background: var(--emerald); box-shadow: 0 0 0 3px rgba(47,211,138,0.25), 0 0 14px var(--emerald); }
+.pin.b.bad { background: var(--crimson); box-shadow: 0 0 0 3px rgba(255,77,94,0.25), 0 0 14px var(--crimson); }
+
+.foot {
+  margin-top: 8px;
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-size: 0.68rem;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.foot kbd {
+  font-family: var(--body);
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--muted);
+}
+
+/* =========================================================
+   6. OVERLAYS (intro + game over)
+   ========================================================= */
+.overlay {
+  position: fixed; inset: 0;
+  z-index: 50;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: rgba(8, 10, 14, 0.72);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease, visibility 0s linear .35s;
+}
+.overlay.show { opacity: 1; visibility: visible; transition: opacity .35s ease; }
+
+.panel {
+  position: relative;
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 34px 30px 28px;
+  border-radius: 26px;
+  text-align: center;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(217,169,73,0.12), transparent 60%),
+    linear-gradient(180deg, var(--ink-3), var(--ink-2));
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 40px 100px -20px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06) inset;
+  transform: translateY(18px) scale(0.97);
+  transition: transform .45s cubic-bezier(.2,.9,.25,1);
+}
+.overlay.show .panel { transform: none; }
+
+.eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.panel h2 {
+  margin: 10px 0 6px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2rem, 7vw, 2.6rem);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.panel .lede { margin: 0 auto; color: var(--muted); font-size: 0.95rem; line-height: 1.55; max-width: 36ch; }
+
+.intro-mark { width: 74px; height: 74px; margin: 0 auto 10px; display: block; }
+.intro h2 {
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 60%, var(--brass-deep));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  letter-spacing: 0.16em;
+}
+.rules {
+  list-style: none;
+  margin: 22px 0 24px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.rules li {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--line);
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+.rules li b {
+  flex: none;
+  font-family: var(--display);
+  color: var(--brass);
+  font-size: 0.8rem;
+  padding-top: 1px;
+}
+
+.cta {
+  width: 100%;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid var(--brass-hi);
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+  color: #0E1116;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 14px 34px -14px rgba(217,169,73,0.8), inset 0 -3px 0 rgba(0,0,0,0.18);
+  transition: transform .12s, box-shadow .2s;
+}
+.cta:hover { transform: translateY(-2px); }
+.cta:active { transform: translateY(1px) scale(0.99); }
+.ghost {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: rgba(217,169,73,0.06);
+  color: var(--brass-hi);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  transition: background .2s, transform .12s;
+}
+.ghost:hover { background: rgba(217,169,73,0.12); }
+.ghost:active { transform: scale(0.99); }
+.ghost svg { width: 18px; height: 18px; }
+
+/* game over */
+.over h2 { color: var(--coral); }
+.over.cleared h2 { color: var(--emerald); }
+.final {
+  margin: 22px 0 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.final .box {
+  padding: 16px 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,0.2);
+}
+.final .box span {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.final .box b {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--display);
+  font-variant-numeric: tabular-nums;
+  font-size: 3rem;
+  line-height: 1;
+}
+.final .box.best b { color: var(--brass-hi); }
+.newbest {
+  display: none;
+  margin: 10px auto 0;
+  width: max-content;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #0E1116;
+  background: linear-gradient(90deg, var(--brass-hi), var(--emerald));
+  animation: glow 1.6s ease-in-out infinite;
+}
+.newbest.show { display: block; }
+@keyframes glow { 50% { box-shadow: 0 0 24px rgba(47,211,138,0.6); } }
+
+.rank {
+  margin: 18px 0 18px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--line-strong);
+  background: rgba(217,169,73,0.05);
+}
+.rank .eyebrow { font-size: 0.6rem; }
+.rank strong {
+  display: block;
+  margin: 6px 0 4px;
+  font-family: var(--display);
+  font-size: 1.6rem;
+  color: var(--brass-hi);
+  letter-spacing: 0.02em;
+}
+.rank p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+
+.reveal-line {
+  margin: 0 0 18px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.reveal-line b { color: var(--text); font-weight: 600; }
+.reveal-line em { font-style: normal; font-family: var(--display); font-weight: 700; color: var(--brass-hi); font-variant-numeric: tabular-nums; }
+
+.btn-row { display: grid; gap: 10px; }
+
+.toast {
+  position: fixed;
+  left: 50%; bottom: 28px;
+  z-index: 80;
+  transform: translate(-50%, 30px);
+  opacity: 0;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: var(--ink-4);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 500;
+  pointer-events: none;
+  transition: transform .3s cubic-bezier(.2,.9,.25,1), opacity .3s;
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.7);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+/* =========================================================
+   7. RESPONSIVE
+   ========================================================= */
+@media (max-width: 760px) {
+  :root { --enter-x: 0px; --enter-y: 50px; --radius: 20px; }
+  .app { padding: 12px 14px 14px; }
+  .brand svg { width: 32px; height: 32px; }
+  .brand h1 { font-size: 1.1rem; letter-spacing: 0.14em; }
+  .brand p { display: none; }
+  .stat { padding: 5px 10px; min-width: 62px; }
+  .stat b { font-size: 1.15rem; }
+  .icon-btn { width: 40px; height: 40px; }
+  .stage { padding: 16px 0 6px; gap: 14px; justify-content: flex-start; }
+  .arena { grid-template-columns: 1fr; gap: 0; }
+  .vs { position: relative; left: auto; top: auto; --vs-base: none; margin: -20px auto; }
+  .card { min-height: 0; padding: 16px 18px 14px; }
+  .card-body { padding: 10px 0 4px; }
+  .title { font-size: 1.35rem; }
+  .num { margin: 10px 0 6px; font-size: clamp(2.1rem, 10vw, 2.8rem); }
+  .num.long { font-size: clamp(1.8rem, 8.2vw, 2.4rem); }
+  .num.xlong { font-size: clamp(1.45rem, 6.8vw, 2rem); }
+  .desc { font-size: 0.9rem; }
+  .actions { grid-template-columns: 1fr 1fr; margin-top: 14px; max-width: none; }
+  .actions .ask { grid-column: 1 / -1; }
+  .guess { height: 54px; font-size: 1rem; letter-spacing: 0.1em; }
+  .guess kbd { display: none; }
+  .wm { font-size: 7.5rem; bottom: -22px; }
+  .vs { width: 64px; height: 64px; }
+  .vs.win, .vs.lose { transform: scale(1.12); }
+  .vs.swap { transform: scale(0.85) rotate(180deg); }
+  .vs-core { font-size: 1.15rem; box-shadow: 0 0 0 5px var(--ink), 0 0 24px color-mix(in srgb, var(--vs) 55%, transparent); }
+  .vs-core .mark { font-size: 1.5rem; }
+  .rail-wrap { padding: 10px 12px 8px; }
+  .rail-head .legend { display: none; }
+  .tick-label { font-size: 0.58rem; }
+  .foot .keys { display: none; }
+  .final .box b { font-size: 2.5rem; }
+  .panel { padding: 28px 20px 22px; }
+}
+
+@media (max-width: 380px) {
+  .stat.best { display: none; }
+}
+
+@media (min-width: 761px) and (max-height: 760px) {
+  .card { min-height: 380px; }
+  .stage { padding-top: 16px; gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena.shake { animation: none; }
+  .vs::before, .vs::after, .num.mystery { animation: none; }
+  .card.enter { animation-duration: .01s; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ================= HEADER ================= -->
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="brassG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F4D58A" /><stop offset="1" stop-color="#8C6A26" />
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="62" height="62" rx="15" fill="#131821" stroke="rgba(226,190,120,.3)" />
+        <path d="M32 13v36M20 49h24M12 21h40" stroke="url(#brassG)" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="32" cy="13" r="3" fill="#F4D58A" />
+        <path d="M12 21l-6 13h12zM52 21l-6 13h12z" fill="rgba(217,169,73,.15)" stroke="url(#brassG)" stroke-width="2.5" stroke-linejoin="round" />
+      </svg>
+      <div class="brand-text">
+        <h1>THE SCALE</h1>
+        <p>A gallery of improbable numbers</p>
+      </div>
+    </div>
+
+    <div class="hud">
+      <div class="stat" id="statStreak"><span>Streak</span><b id="streak">0</b></div>
+      <div class="stat best" id="statBest"><span>Best</span><b id="best">0</b></div>
+      <button class="icon-btn" id="mute" aria-pressed="false" aria-label="Mute sound" title="Mute / unmute (M)">
+        <svg class="ic-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></svg>
+        <svg class="ic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z" /><path d="m22 9-6 6M16 9l6 6" /></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= STAGE ================= -->
+  <main class="stage">
+    <section class="arena" id="arena" aria-label="Comparison">
+      <article class="card" id="cardA" data-role="a">
+        <div class="wm" aria-hidden="true"></div>
+        <div class="card-top"><span class="exhibit"></span><span class="pill"></span></div>
+        <div class="card-body">
+          <h2 class="title"></h2>
+          <div class="num"></div>
+          <p class="desc"></p>
+        </div>
+        <div class="card-foot"><span class="note"></span></div>
+      </article>
+
+      <div class="vs" id="vs" aria-hidden="true">
+        <div class="vs-core"><span class="label">VS</span><span class="mark ok">✓</span><span class="mark no">✕</span></div>
+      </div>
+
+      <article class="card" id="cardB" data-role="b">
+        <div class="wm" aria-hidden="true"></div>
+        <div class="card-top"><span class="exhibit"></span><span class="pill"></span></div>
+        <div class="card-body">
+          <h2 class="title"></h2>
+          <div class="num" aria-live="polite"></div>
+          <p class="desc"></p>
+          <div class="actions">
+            <p class="ask">Higher or lower than <b id="askRef"></b>?</p>
+            <button class="guess higher" id="btnHigher" aria-label="Higher"><span>HIGHER</span><span class="arrow">▲</span><kbd>↑</kbd></button>
+            <button class="guess lower" id="btnLower" aria-label="Lower"><span>LOWER</span><span class="arrow">▼</span><kbd>↓</kbd></button>
+          </div>
+        </div>
+        <div class="card-foot"><span class="note"></span></div>
+      </article>
+    </section>
+
+    <section class="rail-wrap" aria-hidden="true">
+      <div class="rail-head">
+        <span>Order of magnitude</span>
+        <span class="legend"><span><i style="background:var(--brass)"></i>Known</span><span><i style="background:var(--text)"></i>Mystery</span></span>
+      </div>
+      <div class="rail" id="rail">
+        <div class="rail-line"></div>
+        <div class="pin a" id="pinA"></div>
+        <div class="pin b" id="pinB"></div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Figures are rounded real-world estimates. Ties count as correct.</span>
+      <span class="keys"><kbd>↑</kbd> higher · <kbd>↓</kbd> lower · <kbd>M</kbd> mute</span>
+    </footer>
+  </main>
+</div>
+
+<!-- ================= INTRO ================= -->
+<div class="overlay show" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="panel intro">
+    <svg class="intro-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M32 9v40M18 51h28M10 19h44" stroke="url(#brassG)" stroke-width="3" stroke-linecap="round" />
+      <circle cx="32" cy="9" r="3" fill="#F4D58A" />
+      <path d="M10 19l-7 15h14zM54 19l-7 15h14z" fill="rgba(217,169,73,.15)" stroke="url(#brassG)" stroke-width="2.2" stroke-linejoin="round" />
+    </svg>
+    <div class="eyebrow">Now entering the exhibit</div>
+    <h2 id="introTitle">THE SCALE</h2>
+    <p class="lede">Two wildly different real-world numbers. One is on display. The other is hidden. Which way does the scale tip?</p>
+    <ol class="rules">
+      <li><b>01</b><span>The left exhibit shows its number. The right one keeps it secret.</span></li>
+      <li><b>02</b><span>Guess <strong>HIGHER ▲</strong> or <strong>LOWER ▼</strong> for the mystery figure.</span></li>
+      <li><b>03</b><span>Every correct guess extends your streak. One miss and the scale tips over.</span></li>
+    </ol>
+    <button class="cta" id="btnStart">ENTER THE GALLERY</button>
+  </div>
+</div>
+
+<!-- ================= GAME OVER ================= -->
+<div class="overlay" id="over" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+  <div class="panel over" id="overPanel">
+    <div class="eyebrow" id="overEyebrow">The scale has tipped</div>
+    <h2 id="overTitle">GAME OVER</h2>
+    <div class="final">
+      <div class="box"><span>Final streak</span><b id="finalStreak">0</b></div>
+      <div class="box best"><span>All-time best</span><b id="finalBest">0</b></div>
+    </div>
+    <div class="newbest" id="newBest">New personal best</div>
+    <div class="rank">
+      <div class="eyebrow">Your rank</div>
+      <strong id="rankTitle">Wild Guesser</strong>
+      <p id="rankDesc"></p>
+    </div>
+    <p class="reveal-line" id="revealLine"></p>
+    <div class="btn-row">
+      <button class="cta" id="btnAgain">PLAY AGAIN</button>
+      <button class="ghost" id="btnShare">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+        SHARE SCORE
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* =========================================================
+   1. DATASET
+   c = category, t = title, d = description, v = value,
+   p = prefix (e.g. "$"), n = footnote on the figure
+   ========================================================= */
+const DATA = [
+  // ---- Music
+  { c: "Music", t: "The Weeknd", d: "monthly Spotify listeners", v: 110000000, n: "Approx. · 2025" },
+  { c: "Music", t: "“Blinding Lights”", d: "streams on Spotify", v: 4700000000, n: "Approx. · 2025" },
+  { c: "Music", t: "Michael Jackson’s “Thriller”", d: "estimated album copies sold", v: 70000000, n: "Estimate" },
+  { c: "Music", t: "Beyoncé", d: "Grammy Awards won", v: 35, n: "As of 2025" },
+  { c: "Music", t: "A standard piano", d: "keys", v: 88, n: "Exact" },
+  { c: "Music", t: "“Bohemian Rhapsody”", d: "seconds long (album version)", v: 355, n: "Exact" },
+  { c: "Music", t: "Taylor Swift’s Eras Tour", d: "total gross revenue (USD)", v: 2077600000, p: "$", n: "2023–2024" },
+  { c: "Music", t: "“Despacito”", d: "views on YouTube", v: 8700000000, n: "Approx. · 2025" },
+  { c: "Music", t: "The Beatles", d: "UK No. 1 singles", v: 17, n: "Official Charts" },
+
+  // ---- Gaming
+  { c: "Gaming", t: "Minecraft", d: "copies sold worldwide", v: 300000000, n: "As of 2023" },
+  { c: "Gaming", t: "Grand Theft Auto V", d: "copies sold worldwide", v: 215000000, n: "As of 2025" },
+  { c: "Gaming", t: "Nintendo Switch", d: "consoles sold", v: 152000000, n: "As of 2025" },
+  { c: "Gaming", t: "PlayStation 2", d: "consoles sold", v: 160000000, n: "Lifetime" },
+  { c: "Gaming", t: "The National Pokédex", d: "Pokémon species", v: 1025, n: "Through Gen IX" },
+  { c: "Gaming", t: "Steam", d: "record concurrent users online", v: 41000000, n: "Approx. · 2025" },
+  { c: "Gaming", t: "Super Mario Bros. (NES)", d: "copies sold", v: 40240000, n: "Lifetime" },
+  { c: "Gaming", t: "A Scrabble set", d: "letter tiles", v: 100, n: "English edition" },
+  { c: "Gaming", t: "Fortnite", d: "peak concurrent players", v: 14300000, n: "Nov 2023" },
+  { c: "Gaming", t: "A Rubik’s Cube", d: "possible combinations", v: 43252003274489856000, n: "Exact (≈ 4.3 × 10¹⁹)" },
+
+  // ---- Earth
+  { c: "Earth", t: "Australia", d: "total population", v: 27200000, n: "Approx. · 2024" },
+  { c: "Earth", t: "Brazil", d: "total population", v: 212000000, n: "Approx. · 2024" },
+  { c: "Earth", t: "Mount Everest", d: "meters tall", v: 8849, n: "2020 survey" },
+  { c: "Earth", t: "The Challenger Deep", d: "meters below sea level", v: 10935, n: "Approx." },
+  { c: "Earth", t: "The Nile", d: "kilometers long", v: 6650, n: "Approx." },
+  { c: "Earth", t: "The United Nations", d: "member states", v: 193, n: "Exact" },
+  { c: "Earth", t: "Iceland", d: "total population", v: 390000, n: "Approx. · 2024" },
+  { c: "Earth", t: "Greater Tokyo", d: "metro area population", v: 37000000, n: "Approx." },
+  { c: "Earth", t: "Vatican City", d: "acres in total area", v: 121, n: "Approx." },
+  { c: "Earth", t: "Sweden", d: "islands", v: 267570, n: "Statistics Sweden" },
+  { c: "Earth", t: "The Great Wall of China", d: "kilometers long (all sections)", v: 21196, n: "2012 survey" },
+  { c: "Earth", t: "The Eiffel Tower", d: "meters tall (with antennas)", v: 330, n: "Approx." },
+  { c: "Earth", t: "The Burj Khalifa", d: "meters tall", v: 828, n: "Exact" },
+
+  // ---- Space
+  { c: "Space", t: "The Moon", d: "kilometers from Earth (average)", v: 384400, n: "Average distance" },
+  { c: "Space", t: "The Sun", d: "kilometers in diameter", v: 1391400, n: "Approx." },
+  { c: "Space", t: "Saturn", d: "confirmed moons", v: 274, n: "As of 2025" },
+  { c: "Space", t: "Venus", d: "Earth days in one Venus rotation", v: 243, n: "Approx." },
+  { c: "Space", t: "Moonwalkers", d: "humans who have walked on the Moon", v: 12, n: "Apollo 11–17" },
+  { c: "Space", t: "Light", d: "kilometers traveled per second", v: 299792, n: "In a vacuum" },
+  { c: "Space", t: "The International Space Station", d: "km/h orbital speed", v: 27600, n: "Approx." },
+  { c: "Space", t: "The Sun’s surface", d: "degrees Celsius", v: 5500, n: "Approx." },
+
+  // ---- Internet
+  { c: "Internet", t: "English Wikipedia", d: "articles", v: 6900000, n: "Approx. · 2025" },
+  { c: "Internet", t: "Cristiano Ronaldo", d: "Instagram followers", v: 650000000, n: "Approx. · 2025" },
+  { c: "Internet", t: "MrBeast", d: "YouTube subscribers", v: 400000000, n: "Mid-2025" },
+  { c: "Internet", t: "Google", d: "searches every day", v: 8500000000, n: "Estimate" },
+  { c: "Internet", t: "Planet Earth", d: "emails sent every day", v: 360000000000, n: "Estimate · 2024" },
+  { c: "Internet", t: "The original tweet", d: "character limit", v: 140, n: "2006–2017" },
+  { c: "Internet", t: ".com", d: "registered domain names", v: 158000000, n: "Approx. · 2024" },
+  { c: "Internet", t: "Unicode", d: "official emoji", v: 3790, n: "Unicode 16.0" },
+  { c: "Internet", t: "YouTube", d: "hours of video uploaded every minute", v: 500, n: "Estimate" },
+  { c: "Internet", t: "“Gangnam Style”", d: "views on YouTube", v: 5500000000, n: "Approx. · 2025" },
+
+  // ---- Sports
+  { c: "Sports", t: "Wembley Stadium", d: "seats", v: 90000, n: "Capacity" },
+  { c: "Sports", t: "Wayne Gretzky", d: "NHL career points", v: 2857, n: "Regular season" },
+  { c: "Sports", t: "Michael Phelps", d: "Olympic gold medals", v: 23, n: "Career" },
+  { c: "Sports", t: "A marathon", d: "meters long", v: 42195, n: "Exact" },
+  { c: "Sports", t: "A golf ball", d: "dimples (typical)", v: 336, n: "Common design" },
+  { c: "Sports", t: "The 2022 World Cup final", d: "global TV viewers", v: 1500000000, n: "FIFA estimate" },
+  { c: "Sports", t: "Super Bowl LIX", d: "U.S. viewers", v: 127700000, n: "2025 record" },
+  { c: "Sports", t: "A basketball hoop", d: "centimeters off the floor", v: 305, n: "Regulation" },
+
+  // ---- Film & TV
+  { c: "Screen", t: "Avatar (2009)", d: "worldwide box office (USD)", v: 2923000000, p: "$", n: "All releases" },
+  { c: "Screen", t: "Barbie (2023)", d: "worldwide box office (USD)", v: 1446000000, p: "$", n: "Final gross" },
+  { c: "Screen", t: "Netflix", d: "paid subscribers", v: 301600000, n: "End of 2024" },
+  { c: "Screen", t: "Friends", d: "episodes", v: 236, n: "10 seasons" },
+  { c: "Screen", t: "Walt Disney", d: "competitive Oscars won", v: 22, n: "All-time record" },
+  { c: "Screen", t: "The Lord of the Rings trilogy", d: "minutes (theatrical cuts)", v: 558, n: "Combined" },
+
+  // ---- Books
+  { c: "Books", t: "The Harry Potter series", d: "words across all 7 books", v: 1084170, n: "Approx." },
+  { c: "Books", t: "The King James Bible", d: "words", v: 783137, n: "Approx." },
+
+  // ---- Life
+  { c: "Life", t: "A human heart", d: "beats per day (average)", v: 115000, n: "At ~80 bpm" },
+  { c: "Life", t: "The adult human body", d: "bones", v: 206, n: "Typical" },
+  { c: "Life", t: "McDonald’s", d: "restaurants worldwide", v: 43000, n: "Approx. · 2024" },
+  { c: "Life", t: "Starbucks", d: "stores worldwide", v: 40000, n: "Approx. · 2024" },
+  { c: "Life", t: "The world", d: "cups of coffee drunk per day", v: 2250000000, n: "Estimate" },
+  { c: "Life", t: "A human tongue", d: "taste buds", v: 10000, n: "Approx." },
+  { c: "Life", t: "A 4K UHD screen", d: "pixels", v: 8294400, n: "3840 × 2160" },
+  { c: "Life", t: "An octopus", d: "hearts", v: 3, n: "Exact" },
+  { c: "Life", t: "A Greenland shark", d: "years of estimated lifespan", v: 400, n: "Estimate" },
+  { c: "Life", t: "Ants on Earth", d: "estimated individual ants", v: 20000000000000000, n: "2022 study" },
+];
+
+const CATS = {
+  Music:    "#F17FCB",
+  Gaming:   "#A98BFF",
+  Earth:    "#3FD1B8",
+  Space:    "#7FA6FF",
+  Internet: "#4FC8F0",
+  Sports:   "#FF9A4D",
+  Screen:   "#FF7A8A",
+  Books:    "#E8C46A",
+  Life:     "#A6E35C",
+};
+
+const RANKS = [
+  { min: 12, title: "Human Encyclopedia", desc: "Are you… secretly a spreadsheet? The museum would like to hire you." },
+  { min: 7,  title: "Stat Wizard",        desc: "Numbers bend to your will. Most visitors never get this far." },
+  { min: 3,  title: "Trivia Tourist",     desc: "You’ve seen a few exhibits and bought the postcards. Keep exploring." },
+  { min: 0,  title: "Wild Guesser",       desc: "Pure instinct, zero regrets. The scale is a cruel mistress." },
+];
+
+/* =========================================================
+   2. HELPERS
+   ========================================================= */
+const $ = (s, el = document) => el.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+const pad = (n) => String(n).padStart(3, "0");
+const log10 = (v) => Math.log10(Math.max(v, 1));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const WORDS = [
+  [1e18, "quintillion"],
+  [1e15, "quadrillion"],
+  [1e12, "trillion"],
+];
+function fmtNum(v) {
+  for (const [base, word] of WORDS) {
+    if (v >= base) {
+      const x = v / base;
+      const s = x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2);
+      return (s.includes(".") ? s.replace(/\.?0+$/, "") : s) + " " + word;
+    }
+  }
+  return Math.round(v).toLocaleString("en-US");
+}
+const fmt = (item, v = item.v) => (item.p || "") + fmtNum(v);
+const sizeClass = (v) => (v >= 1e12 ? "xlong" : v >= 1e9 ? "long" : "");
+
+/* =========================================================
+   3. AUDIO (Web Audio API, no files)
+   ========================================================= */
+const sfx = (() => {
+  let ctx = null, master = null;
+  let muted = store.get("scale.muted", "0") === "1";
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.7;
+      master.connect(ctx.destination);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+
+  function tone({ freq, type = "sine", dur = 0.2, gain = 0.2, at = 0, slideTo = null, attack = 0.005 }) {
+    if (muted || !ensure()) return;
+    const t0 = ctx.currentTime + at;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(master);
+    o.start(t0);
+    o.stop(t0 + dur + 0.05);
+  }
+
+  function noise({ dur = 0.2, gain = 0.2, freq = 400, at = 0 }) {
+    if (muted || !ensure()) return;
+    const t0 = ctx.currentTime + at;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(f).connect(g).connect(master);
+    src.start(t0);
+  }
+
+  return {
+    unlock: ensure,
+    get muted() { return muted; },
+    setMuted(m) { muted = m; store.set("scale.muted", m ? "1" : "0"); },
+    tick(progress = 0) {
+      tone({ freq: 1500 + progress * 900, type: "triangle", dur: 0.035, gain: 0.05, attack: 0.002 });
+    },
+    click() { tone({ freq: 520, type: "sine", dur: 0.08, gain: 0.08, slideTo: 380 }); },
+    chime() {
+      const notes = [659.25, 783.99, 987.77, 1318.51]; // E5 G5 B5 E6
+      notes.forEach((f, i) => {
+        tone({ freq: f, type: "sine", dur: 0.55, gain: 0.14, at: i * 0.075, attack: 0.01 });
+        tone({ freq: f * 2, type: "triangle", dur: 0.25, gain: 0.025, at: i * 0.075 });
+      });
+    },
+    thud() {
+      tone({ freq: 140, type: "sine", dur: 0.45, gain: 0.5, slideTo: 42, attack: 0.004 });
+      tone({ freq: 90, type: "triangle", dur: 0.3, gain: 0.15, slideTo: 50 });
+      noise({ dur: 0.25, gain: 0.25, freq: 300 });
+    },
+    whoosh() { noise({ dur: 0.35, gain: 0.05, freq: 1800 }); },
+  };
+})();
+
+/* =========================================================
+   4. DOM REFS
+   ========================================================= */
+const el = {
+  arena: $("#arena"),
+  cardA: $("#cardA"),
+  cardB: $("#cardB"),
+  vs: $("#vs"),
+  streak: $("#streak"),
+  best: $("#best"),
+  statStreak: $("#statStreak"),
+  statBest: $("#statBest"),
+  askRef: $("#askRef"),
+  btnHigher: $("#btnHigher"),
+  btnLower: $("#btnLower"),
+  mute: $("#mute"),
+  rail: $("#rail"),
+  pinA: $("#pinA"),
+  pinB: $("#pinB"),
+  intro: $("#intro"),
+  btnStart: $("#btnStart"),
+  over: $("#over"),
+  overPanel: $("#overPanel"),
+  overEyebrow: $("#overEyebrow"),
+  overTitle: $("#overTitle"),
+  finalStreak: $("#finalStreak"),
+  finalBest: $("#finalBest"),
+  newBest: $("#newBest"),
+  rankTitle: $("#rankTitle"),
+  rankDesc: $("#rankDesc"),
+  revealLine: $("#revealLine"),
+  btnAgain: $("#btnAgain"),
+  btnShare: $("#btnShare"),
+  toast: $("#toast"),
+};
+
+/* =========================================================
+   5. MAGNITUDE RAIL
+   ========================================================= */
+const RAIL_MAX = 20; // 10^0 … 10^20
+const RAIL_LABELS = { 0: "1", 3: "1K", 6: "1M", 9: "1B", 12: "1T", 15: "1Qa", 18: "1Qi" };
+(function buildRail() {
+  for (let i = 0; i <= RAIL_MAX; i++) {
+    const t = document.createElement("div");
+    const major = i % 3 === 0;
+    t.className = "tick" + (major ? " major" : "");
+    t.style.left = (i / RAIL_MAX) * 100 + "%";
+    el.rail.appendChild(t);
+    if (RAIL_LABELS[i] !== undefined) {
+      const l = document.createElement("div");
+      l.className = "tick-label";
+      l.style.left = (i / RAIL_MAX) * 100 + "%";
+      l.textContent = RAIL_LABELS[i];
+      el.rail.appendChild(l);
+    }
+  }
+})();
+const railPos = (v) => Math.min(100, (log10(v) / RAIL_MAX) * 100) + "%";
+
+/* =========================================================
+   6. GAME STATE
+   ========================================================= */
+const state = {
+  deck: [],
+  a: null,
+  b: null,
+  streak: 0,
+  best: parseInt(store.get("scale.best", "0"), 10) || 0,
+  busy: true,
+  playing: false,
+  lastWrong: null,
+};
+
+function renderCard(card, item, reveal) {
+  card.style.setProperty("--cat", CATS[item.c] || "var(--brass)");
+  $(".wm", card).textContent = pad(item.id + 1);
+  $(".exhibit", card).textContent = "Exhibit No. " + pad(item.id + 1);
+  $(".pill", card).textContent = item.c;
+  $(".title", card).textContent = item.t;
+  $(".desc", card).textContent = item.d;
+  $(".note", card).textContent = item.n || "";
+  const num = $(".num", card);
+  num.className = "num " + sizeClass(item.v);
+  if (reveal) {
+    num.textContent = fmt(item);
+  } else {
+    num.textContent = "???";
+    num.classList.add("mystery");
+  }
+}
+
+function renderHud() {
+  el.streak.textContent = state.streak;
+  el.best.textContent = state.best;
+}
+
+/* Pick the next mystery item: close-ish in magnitude so it's never trivial,
+   tightening as the streak grows. Every item is drawn from the shuffled deck,
+   so nothing repeats within a run. */
+function drawNext(ref) {
+  if (!state.deck.length) return null;
+  const range = Math.max(0.5, 2.3 - state.streak * 0.12); // in orders of magnitude
+  const refL = log10(ref.v);
+  let pool = state.deck.filter((x) => x.v !== ref.v && Math.abs(log10(x.v) - refL) <= range);
+  if (!pool.length) {
+    pool = state.deck
+      .filter((x) => x.v !== ref.v)
+      .sort((x, y) => Math.abs(log10(x.v) - refL) - Math.abs(log10(y.v) - refL))
+      .slice(0, 4);
+  }
+  if (!pool.length) pool = state.deck.slice();
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  state.deck.splice(state.deck.indexOf(pick), 1);
+  return pick;
+}
+
+function setIdle() {
+  el.vs.className = "vs";
+  el.cardB.classList.remove("locked", "correct", "wrong");
+  el.cardA.classList.remove("correct", "wrong");
+  el.askRef.textContent = state.a.t;
+  el.pinA.style.left = railPos(state.a.v);
+  el.pinB.className = "pin b";
+  state.busy = false;
+}
+
+function newGame() {
+  state.deck = shuffle(DATA.map((x, i) => ({ ...x, id: i })));
+  state.streak = 0;
+  state.lastWrong = null;
+  state.a = state.deck.pop();
+  state.b = drawNext(state.a);
+  state.playing = true;
+
+  el.arena.classList.add("no-anim");
+  el.cardA.className = "card";
+  el.cardB.className = "card";
+  el.cardA.style.transform = el.cardB.style.transform = "";
+  renderCard(el.cardA, state.a, true);
+  renderCard(el.cardB, state.b, false);
+  void el.arena.offsetWidth;
+  el.arena.classList.remove("no-anim");
+  el.cardA.classList.add("enter");
+  el.cardB.classList.add("enter");
+  el.cardB.style.animationDelay = "90ms";
+  setTimeout(() => {
+    el.cardA.classList.remove("enter");
+    el.cardB.classList.remove("enter");
+    el.cardB.style.animationDelay = "";
+  }, 700);
+
+  renderHud();
+  setIdle();
+}
+
+/* ---------- reveal roll ---------- */
+function rollTo(item) {
+  return new Promise((resolve) => {
+    const num = $(".num", el.cardB);
+    num.classList.remove("mystery");
+    num.classList.add("rolling");
+    el.pinB.classList.add("live");
+    el.pinB.style.left = "0%";
+
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const D = reduce ? 500 : 1200;
+    const L = log10(item.v);
+    const start = performance.now();
+    let last = "", lastTick = 0;
+
+    function frame(now) {
+      const t = Math.min(1, (now - start) / D);
+      const e = 1 - Math.pow(1 - t, 3);
+      const cur = t >= 1 ? item.v : Math.pow(10, L * e);
+      const s = fmt(item, cur);
+      if (s !== last) {
+        num.textContent = s;
+        last = s;
+        if (now - lastTick > 42) { sfx.tick(t); lastTick = now; }
+      }
+      el.pinB.style.left = railPos(cur);
+      if (t < 1) requestAnimationFrame(frame);
+      else { num.classList.remove("rolling"); resolve(); }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ---------- guess ---------- */
+async function guess(dir) {
+  if (state.busy || !state.playing) return;
+  state.busy = true;
+  sfx.unlock();
+  sfx.click();
+
+  el.cardB.classList.add("locked");
+  el.vs.className = "vs rolling";
+
+  await rollTo(state.b);
+
+  const { a, b } = state;
+  const correct = b.v === a.v || (dir === "higher" ? b.v > a.v : b.v < a.v);
+
+  if (correct) await onCorrect();
+  else await onWrong(dir);
+}
+
+async function onCorrect() {
+  state.streak++;
+  const isBest = state.streak > state.best;
+  if (isBest) { state.best = state.streak; store.set("scale.best", String(state.best)); }
+
+  el.cardB.classList.add("correct");
+  el.vs.className = "vs win";
+  el.pinB.classList.add("good");
+  sfx.chime();
+  renderHud();
+  bump(el.statStreak);
+  if (isBest) bump(el.statBest);
+
+  await sleep(800);
+
+  const next = drawNext(state.b);
+  if (!next) { // the whole deck survived — a perfect run
+    await sleep(200);
+    showOver(true);
+    return;
+  }
+  await slide(next);
+}
+
+function bump(node) {
+  node.classList.remove("bump");
+  void node.offsetWidth;
+  node.classList.add("bump");
+}
+
+/* Card B glides into Card A's slot, Card A fades away, a fresh B enters. */
+async function slide(next) {
+  const ra = el.cardA.getBoundingClientRect();
+  const rb = el.cardB.getBoundingClientRect();
+  const dx = ra.left - rb.left;
+  const dy = ra.top - rb.top;
+
+  sfx.whoosh();
+  el.vs.className = "vs swap";
+  el.cardA.classList.add("exit");
+  el.cardA.style.transform = `translate(${dx * 0.35}px, ${dy * 0.35}px) scale(0.92)`;
+  el.cardB.classList.add("move");
+  el.cardB.style.transform = `translate(${dx}px, ${dy}px)`;
+
+  await sleep(600);
+
+  // swap data with all transitions disabled, in a single frame
+  state.a = state.b;
+  state.b = next;
+  el.arena.classList.add("no-anim");
+  el.cardA.className = "card";
+  el.cardB.className = "card";
+  el.cardA.style.transform = "";
+  el.cardB.style.transform = "";
+  renderCard(el.cardA, state.a, true);
+  renderCard(el.cardB, state.b, false);
+  el.pinA.style.left = railPos(state.a.v);
+  el.pinB.className = "pin b";
+  el.vs.className = "vs";
+  void el.arena.offsetWidth;
+  el.arena.classList.remove("no-anim");
+
+  el.cardB.classList.add("enter");
+  setIdle();
+  setTimeout(() => el.cardB.classList.remove("enter"), 600);
+}
+
+async function onWrong(dir) {
+  state.playing = false;
+  state.lastWrong = { a: state.a, b: state.b, dir };
+  el.cardB.classList.add("wrong");
+  el.vs.className = "vs lose";
+  el.pinB.classList.add("bad");
+  el.arena.classList.remove("shake");
+  void el.arena.offsetWidth;
+  el.arena.classList.add("shake");
+  sfx.thud();
+  if (navigator.vibrate) navigator.vibrate(60);
+
+  await sleep(1150);
+  showOver(false);
+}
+
+/* =========================================================
+   7. GAME OVER / SHARE
+   ========================================================= */
+let previousBestAtStart = state.best;
+
+function rankFor(n) { return RANKS.find((r) => n >= r.min); }
+
+function showOver(cleared) {
+  state.playing = false;
+  state.busy = true;
+  const r = rankFor(state.streak);
+  el.overPanel.classList.toggle("cleared", cleared);
+  el.overEyebrow.textContent = cleared ? "Every exhibit, conquered" : "The scale has tipped";
+  el.overTitle.textContent = cleared ? "FLAWLESS" : "GAME OVER";
+  el.finalStreak.textContent = state.streak;
+  el.finalBest.textContent = state.best;
+  el.newBest.classList.toggle("show", state.streak > 0 && state.streak > previousBestAtStart);
+  el.rankTitle.textContent = r.title;
+  el.rankDesc.textContent = r.desc;
+
+  el.revealLine.innerHTML = "";
+  if (!cleared && state.lastWrong) {
+    const { a, b } = state.lastWrong;
+    const rel = b.v > a.v ? "higher" : "lower";
+    el.revealLine.append(
+      txt("b", b.t), " has ", txt("em", fmt(b)), ` ${b.d}: ${rel} than `,
+      txt("b", a.t), "’s ", txt("em", fmt(a)), "."
+    );
+  } else if (cleared) {
+    el.revealLine.textContent = "You made it through the entire collection without a single miss.";
+  }
+
+  el.over.classList.add("show");
+  setTimeout(() => el.btnAgain.focus({ preventScroll: true }), 50);
+}
+
+function txt(tag, s) { const n = document.createElement(tag); n.textContent = s; return n; }
+
+function shareText() {
+  const n = state.streak;
+  const cap = 15;
+  const greens = "🟩".repeat(Math.min(n, cap)) + (n > cap ? ` +${n - cap}` : "");
+  const end = el.overPanel.classList.contains("cleared") ? "🏆" : "🟥";
+  const r = rankFor(n);
+  return [
+    `THE SCALE ⚖️  Streak: ${n}`,
+    `${greens}${end}`,
+    `Rank: ${r.title} · Best: ${state.best}`,
+    location.origin && location.origin !== "null" ? location.origin : "",
+  ].filter(Boolean).join("\n");
+}
+
+async function copy(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch { return false; }
+}
+
+let toastTimer;
+function toast(msg) {
+  el.toast.textContent = msg;
+  el.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.toast.classList.remove("show"), 2000);
+}
+
+function restart() {
+  el.over.classList.remove("show");
+  previousBestAtStart = state.best;
+  sfx.unlock();
+  sfx.click();
+  newGame();
+}
+
+/* =========================================================
+   8. EVENTS
+   ========================================================= */
+function syncMute() {
+  el.mute.setAttribute("aria-pressed", String(sfx.muted));
+  el.mute.setAttribute("aria-label", sfx.muted ? "Unmute sound" : "Mute sound");
+}
+function toggleMute() {
+  sfx.setMuted(!sfx.muted);
+  syncMute();
+  if (!sfx.muted) { sfx.unlock(); sfx.click(); }
+}
+
+el.btnHigher.addEventListener("click", () => guess("higher"));
+el.btnLower.addEventListener("click", () => guess("lower"));
+el.mute.addEventListener("click", toggleMute);
+el.btnAgain.addEventListener("click", restart);
+el.btnShare.addEventListener("click", async () => {
+  const ok = await copy(shareText());
+  toast(ok ? "Score copied — go brag a little." : "Couldn’t access the clipboard.");
+});
+el.btnStart.addEventListener("click", () => {
+  el.intro.classList.remove("show");
+  sfx.unlock();
+  sfx.click();
+  newGame();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "m") { toggleMute(); return; }
+  if (el.intro.classList.contains("show")) {
+    if (k === "enter" || k === " ") { e.preventDefault(); el.btnStart.click(); }
+    return;
+  }
+  if (el.over.classList.contains("show")) {
+    if (k === "enter" && document.activeElement !== el.btnShare) { e.preventDefault(); restart(); }
+    return;
+  }
+  if (k === "arrowup" || k === "h") { e.preventDefault(); guess("higher"); }
+  else if (k === "arrowdown" || k === "l") { e.preventDefault(); guess("lower"); }
+});
+
+/* =========================================================
+   9. BOOT — render a preview behind the intro
+   ========================================================= */
+syncMute();
+state.deck = shuffle(DATA.map((x, i) => ({ ...x, id: i })));
+state.a = state.deck.pop();
+state.b = drawNext(state.a);
+renderCard(el.cardA, state.a, true);
+renderCard(el.cardB, state.b, false);
+renderHud();
+el.pinA.style.left = railPos(state.a.v);
+el.askRef.textContent = state.a.t;
+setTimeout(() => el.btnStart.focus({ preventScroll: true }), 100);
+})();
+</script>
+</body>
+</html>
