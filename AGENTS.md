@@ -1,23 +1,15 @@
-# AGENTS.md — THE SCALE
+# AGENTS.md
 
-## Architecture
-- `index.html` holds the whole game. The user explicitly asked for a single file, so keep it that way. Don't add a bundler, framework or extra JS/CSS files.
-- `netlify.toml` publishes the repo root as a static site with no build command.
-- There is no backend and no database. The only persistence is `localStorage`: `scale.best` stores the best streak and `scale.muted` stores the mute state.
+## Project
+Dueply is a single-file static site (`index.html`): HTML, CSS and vanilla JS, no dependencies, no build.
 
-## Layout of index.html
-1. `<style>` is split into numbered sections: tokens, header, stage/cards, VS badge, magnitude rail, overlays, responsive. Colors and fonts are CSS variables in `:root`.
-2. The markup is the header (streak, best, mute), then `#arena` with `#cardA`, `#vs` and `#cardB`, then the rail, then the `#intro` and `#over` overlays and the toast.
-3. The `<script>` is one IIFE with numbered sections: DATA/CATS/RANKS, helpers, `sfx` (Web Audio), DOM refs, rail, game state and flow, game over/share, events, boot.
-
-## Non-obvious decisions
-- **Cards stay put and their content swaps.** `#cardA` and `#cardB` are never re-created. To slide, card B gets a transform toward card A's position (measured with `getBoundingClientRect`, so it works for both the side-by-side and stacked layouts). After that, `.no-anim` is applied to the arena, both cards are re-rendered and the transforms are reset in one frame.
-- **Matchmaking:** `drawNext()` picks the next mystery item from items within N orders of magnitude of the current one. N shrinks as the streak grows. Items are spliced out of the shuffled deck, so none repeats within a run. If the deck runs out, the game ends with a "FLAWLESS" screen.
-- **The roll animation uses log space** (`10^(log10(v) * eased t)`), so every digit place gets screen time. Ties count as correct, and no two values in DATA are equal.
-- Numbers of 1e12 and above are shown in words ("43.3 quintillion"). `sizeClass()` picks the font size from the target value, so the font doesn't change size mid-roll.
-- `font-variant-numeric: tabular-nums` on `.num` keeps the rolling digits from shifting sideways.
-
-## Conventions
-- Add new categories to `CATS` along with their pill color.
-- Keep every value in DATA unique. The check is: `values.length === new Set(values).size`.
-- Keep figures sourced and rounded, and put the year or a caveat in `n`.
+## Rules
+- Keep it one file with no framework. Render with `textContent` / DOM nodes, never `innerHTML` with user input.
+- Do not edit or reorder existing entries in the `B` question array: daily puzzles are seeded from it. Append only.
+- Every question needs `[topic, text, answer, unit, difficulty]`. Verify the answer by hand (g = 9.8) before adding.
+- Allowed units: `m`, `s`, `m/s`, `m/s2`. Extend `OKU` in `grade()` if adding more.
+- Marking lives in `grade()`: 100 correct (unit optional or sloppy), 40 wrong unit or within 3%, else 0. Keep it lenient on formatting but strict on numbers.
+- Colour tokens live in `:root`. Keep the dark-ink and brass palette.
+- Test manually: a full daily, a timeout, an arcade run, and clearing localStorage keys prefixed `dueply.m.`.
+- The `#gd` overlay is the student guide. Keep it accurate: dropped means u = 0 (not v = 0); v = 0 only at rest or at the top of a throw.
+- The endless mode is called **IQ Trainer** in the UI (internal names still say `arcade`).
